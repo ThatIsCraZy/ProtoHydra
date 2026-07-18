@@ -1,0 +1,90 @@
+name: Build and Release
+
+# Baut die self-contained FileHydra.exe reproduzierbar in CI und haengt sie
+# (plus THIRD-PARTY-NOTICES.txt) an den Release des jeweiligen Tags.
+#
+# Code Signing (SignPath Foundation):
+#   Sobald das Projekt bei SignPath zugelassen ist, im Repo unter
+#   Settings > Secrets and variables > Actions diese Secrets anlegen:
+#     SIGNPATH_API_TOKEN            (SignPath REST-API-Token)
+#     SIGNPATH_ORGANIZATION_ID      (aus dem SignPath-Dashboard)
+#     SIGNPATH_PROJECT_SLUG         (z. B. "filehydra")
+#     SIGNPATH_SIGNING_POLICY_SLUG  (z. B. "release-signing")
+#   Fehlt SIGNPATH_API_TOKEN, laeuft der Workflow durch und liefert ein
+#   UNSIGNIERTES Binary (kein Fehler) - so ist der Ablauf schon vor der
+#   Zulassung testbar.
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Vorhandener Tag, an dessen Release die Assets gehaengt werden (z. B. v1.4)'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    env:
+      SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Publish (self-contained, win-x64, single file)
+        shell: pwsh
+        run: |
+          dotnet publish src/DataService.App/DataService.App.csproj -c Release
+          New-Item -ItemType Directory -Force staging | Out-Null
+          Copy-Item src/DataService.App/bin/Release/net10.0/win-x64/publish/FileHydra.exe staging/FileHydra.exe
+
+      - name: Upload unsigned artifact
+        id: unsigned
+        uses: actions/upload-artifact@v4
+        with:
+          name: FileHydra-unsigned
+          path: staging/FileHydra.exe
+          if-no-files-found: error
+
+      - name: Submit signing request to SignPath
+        id: sign
+        if: env.SIGNPATH_API_TOKEN != ''
+        uses: signpath/github-action-submit-signing-request@v1
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ secrets.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ secrets.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: ${{ secrets.SIGNPATH_SIGNING_POLICY_SLUG }}
+          github-artifact-id: ${{ steps.unsigned.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: signed
+
+      - name: Select final binary (signed if available)
+        shell: pwsh
+        run: |
+          $signed = Get-ChildItem signed -Recurse -Filter FileHydra.exe -ErrorAction SilentlyContinue | Select-Object -First 1
+          if ($signed) {
+            Copy-Item $signed.FullName staging/FileHydra.exe -Force
+            Write-Host "Attaching SIGNED binary."
+          } else {
+            Write-Host "SignPath not configured - attaching UNSIGNED binary."
+          }
+
+      - name: Attach assets to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.tag || github.ref_name }}
+          files: |
+            staging/FileHydra.exe
+            THIRD-PARTY-NOTICES.txt
+          fail_on_unmatched_files: true

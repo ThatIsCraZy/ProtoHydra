@@ -114,6 +114,8 @@ Empfehlungen: Nur im **Wartungs-/Geräte-Netz** oder hinter einer Firewall betre
 
 Eingebaute Schutzmechanismen: mehrstufige Pfadvalidierung gegen Ausbruch aus dem Root; Blockade von Symlinks/Reparse-Points aus dem Root; Passwörter/Credentials werden **nie** geloggt; temporäre Upload-Dateien werden bei Abbruch bereinigt.
 
+**Sicherheit melden & Code-Signing:** Sicherheitsprobleme bitte vertraulich über den „Report a vulnerability"-Button im Security-Tab melden. Release-Binaries werden reproduzierbar per GitHub Actions gebaut und über das kostenlose Open-Source-Programm der SignPath Foundation signiert. Details: [SECURITY.md](SECURITY.md).
+
 ### Datenablage und Konfiguration
 
 Einstellungen liegen als JSON im Benutzerprofil. Laufzeitdaten (Zertifikate, SSH-Host-Key, Logs, Firewall-Helper) liegen unter `%LOCALAPPDATA%\FileHydra\`, der Standard-Root-Ordner unter `%LOCALAPPDATA%\FileHydra\Root`. Konfigurierbar sind u. a. RootPath, Protocols (Ports/Bind-Adressen/aktivierte Protokolle), Certificate (X.509 für HTTPS/FTPS), SshHostKey und LogSettings.
@@ -294,6 +296,8 @@ The application deliberately uses **Accept-Any authentication**: any username an
 Recommendations: run it only in a **maintenance/device network** or behind a firewall, never on the open internet. Keep it running only for the duration of the transfer. Expose only what the device actually needs as the root.
 
 Built-in safeguards: multi-stage path validation against root escape; blocking of symlinks/reparse points leaving the root; passwords/credentials are **never** logged; temporary upload files are cleaned up on abort.
+
+**Reporting security issues & code signing:** Please report security issues privately via the "Report a vulnerability" button on the Security tab. Release binaries are built reproducibly via GitHub Actions and code signed through the SignPath Foundation free open-source program. See [SECURITY.md](SECURITY.md) for details.
 
 ### Data storage and configuration
 
