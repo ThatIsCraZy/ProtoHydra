@@ -55,7 +55,7 @@ public sealed class WindowsTemporaryFirewallRuleService : IFirewallTemporaryRule
         }
 
         var ruleBaseName = BuildRuleBaseName(executablePath, ownerProcessId);
-        var stopEventName = $"Local\\FileHydra.FirewallFix.Stop.{ownerProcessId.ToString(CultureInfo.InvariantCulture)}";
+        var stopEventName = $"Local\\ProtoHydra.FirewallFix.Stop.{ownerProcessId.ToString(CultureInfo.InvariantCulture)}";
         lock (_lock)
         {
             _stopEvent?.Dispose();
@@ -115,7 +115,7 @@ public sealed class WindowsTemporaryFirewallRuleService : IFirewallTemporaryRule
         }
 
         var message = $"Temporary allow rules active (TCP: {FormatOrDash(tcpPorts)}; UDP: {FormatOrDash(udpPorts)}). "
-            + "They are removed automatically when FileHydra exits or when the fix is undone.";
+            + "They are removed automatically when ProtoHydra exits or when the fix is undone.";
         var policyWarning = TryGetPolicyWarning();
         if (policyWarning is not null)
         {
@@ -230,7 +230,7 @@ public sealed class WindowsTemporaryFirewallRuleService : IFirewallTemporaryRule
     private static string BuildRuleBaseName(string executablePath, int ownerProcessId)
     {
         var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(executablePath)))[..12];
-        return $"FileHydra Temporary Allow {ownerProcessId.ToString(CultureInfo.InvariantCulture)} {hash}";
+        return $"ProtoHydra Temporary Allow {ownerProcessId.ToString(CultureInfo.InvariantCulture)} {hash}";
     }
 
     private static string Quote(string value)
@@ -283,7 +283,7 @@ function Add-HydraRule {
     param($Policy, [string]$Name, [int]$Protocol, [string]$Ports)
     $rule = New-Object -ComObject HNetCfg.FWRule
     $rule.Name = $Name
-    $rule.Description = 'Temporary FileHydra allow rule. Removed automatically when the owner process exits.'
+    $rule.Description = 'Temporary ProtoHydra allow rule. Removed automatically when the owner process exits.'
     $rule.ApplicationName = $ExecutablePath
     $rule.Protocol = $Protocol
     $rule.LocalPorts = $Ports
@@ -299,9 +299,9 @@ try {
     Write-HelperLog "Elevated temporary firewall rule helper started (owner PID $OwnerProcessId)."
     $policy = New-Object -ComObject HNetCfg.FwPolicy2
 
-    $staleNames = @($policy.Rules | Where-Object { $_.Name -like 'FileHydra Temporary Allow *' } | ForEach-Object { $_.Name })
+    $staleNames = @($policy.Rules | Where-Object { $_.Name -like 'ProtoHydra Temporary Allow *' } | ForEach-Object { $_.Name })
     foreach ($staleName in $staleNames) {
-        # Rule name layout: "FileHydra Temporary Allow <pid> <hash> <TCP|UDP>" -> PID is token index 3.
+        # Rule name layout: "ProtoHydra Temporary Allow <pid> <hash> <TCP|UDP>" -> PID is token index 3.
         $parts = $staleName.Split(' ')
         $rulePid = 0
         if ($parts.Length -ge 4 -and [int]::TryParse($parts[3], [ref]$rulePid)) {

@@ -7,7 +7,7 @@
         MinHeight="360"
         UseLayoutRounding="True"
         Background="{DynamicResource AppBackgroundBrush}"
-        Title="Lizenzen &amp; Hinweise — FileHydra"
+        Title="Lizenzen &amp; Hinweise — ProtoHydra"
         WindowStartupLocation="CenterOwner">
   <Grid RowDefinitions="Auto,*,Auto" Margin="14" RowSpacing="10">
     <StackPanel Spacing="4">
@@ -16,7 +16,7 @@
                  FontWeight="SemiBold" />
       <TextBlock Classes="caption"
                  TextWrapping="Wrap"
-                 Text="FileHydra selbst steht unter der MIT-Lizenz. Diese Anwendung bündelt die unten aufgeführten Open-Source-Komponenten, die jeweils unter ihren eigenen Lizenzen genutzt werden. Der vollständige Wortlaut ist hier enthalten und liegt zusätzlich als LICENSE und THIRD-PARTY-NOTICES.txt bei." />
+                 Text="ProtoHydra selbst steht unter der MIT-Lizenz. Diese Anwendung bündelt die unten aufgeführten Open-Source-Komponenten, die jeweils unter ihren eigenen Lizenzen genutzt werden. Der vollständige Wortlaut ist hier enthalten und liegt zusätzlich als LICENSE und THIRD-PARTY-NOTICES.txt bei." />
     </StackPanel>
 
     <Border Grid.Row="1"

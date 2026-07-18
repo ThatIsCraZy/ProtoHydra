@@ -9,7 +9,7 @@
         MinHeight="320"
         UseLayoutRounding="True"
         Background="{DynamicResource AppBackgroundBrush}"
-        Title="IO Error Log — FileHydra"
+        Title="IO Error Log — ProtoHydra"
         WindowStartupLocation="CenterOwner">
   <Grid RowDefinitions="Auto,*,Auto" Margin="14" RowSpacing="10">
     <TextBlock Classes="caption"

@@ -10,7 +10,7 @@
         MinHeight="640"
         UseLayoutRounding="True"
         Background="{DynamicResource AppBackgroundBrush}"
-        Title="FileHydra">
+        Title="ProtoHydra">
   <DockPanel>
     <Border DockPanel.Dock="Top" Background="{DynamicResource AppHeaderBrush}" Padding="18,12">
       <Grid ColumnDefinitions="*,Auto,*,Auto,Auto" ColumnSpacing="14">
@@ -20,7 +20,7 @@
                   CornerRadius="10"
                   Background="{DynamicResource AppPrimaryBrush}"
                   VerticalAlignment="Center">
-            <TextBlock Text="FH"
+            <TextBlock Text="PH"
                        Foreground="{DynamicResource AppPrimaryTextBrush}"
                        FontSize="18"
                        FontWeight="Bold"
@@ -28,7 +28,7 @@
                        VerticalAlignment="Center" />
           </Border>
           <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-            <TextBlock Text="FileHydra"
+            <TextBlock Text="ProtoHydra"
                        Foreground="{DynamicResource AppInverseTextBrush}"
                        FontSize="19"
                        FontWeight="SemiBold" />
@@ -145,7 +145,7 @@
           <Button Classes="link"
                   Click="ViewLicenses_OnClick"
                   HorizontalAlignment="Right"
-                  ToolTip.Tip="Lizenz von FileHydra und aller verwendeten Open-Source-Komponenten anzeigen">
+                  ToolTip.Tip="Lizenz von ProtoHydra und aller verwendeten Open-Source-Komponenten anzeigen">
             <TextBlock Text="Lizenzen &amp; Hinweise"
                        TextDecorations="Underline"
                        FontSize="11"

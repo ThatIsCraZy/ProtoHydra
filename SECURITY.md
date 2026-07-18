@@ -12,12 +12,12 @@ information in reports.
 
 ## Scope note
 
-FileHydra is a maintenance/lab tool that deliberately ships with an
+ProtoHydra is a maintenance/lab tool that deliberately ships with an
 **Accept-Any authentication policy** (every username/password is accepted, no
 access control) and can create a **temporary, user-approved (elevated) Windows
 Firewall allow rule** for its own listener ports. Both are documented, opt-in
 maintenance features — not attempts to exploit vulnerabilities or circumvent
-security controls. FileHydra is intended for controlled maintenance/device
+security controls. ProtoHydra is intended for controlled maintenance/device
 networks, **not** for permanent or publicly reachable operation. Reports that
 simply restate this documented behaviour are not considered vulnerabilities.
 
@@ -48,9 +48,9 @@ signing request.
 
 **Privacy**
 
-FileHydra collects **no** telemetry and transmits **no** usage or personal data.
+ProtoHydra collects **no** telemetry and transmits **no** usage or personal data.
 All runtime data (certificates, SSH host key, logs, configuration) stays on the
-local machine under `%LOCALAPPDATA%\FileHydra\`.
+local machine under `%LOCALAPPDATA%\ProtoHydra\`.
 
 **Attribution**
 
@@ -63,7 +63,7 @@ After a signed release is published, you can verify the signature on Windows
 with:
 
 ```powershell
-Get-AuthenticodeSignature .\FileHydra.exe | Format-List Status, SignerCertificate
+Get-AuthenticodeSignature .\ProtoHydra.exe | Format-List Status, SignerCertificate
 ```
 
 A valid signature reports `Status: Valid` and a certificate issued for the

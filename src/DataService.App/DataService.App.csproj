@@ -2,7 +2,7 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
-    <AssemblyName>FileHydra</AssemblyName>
+    <AssemblyName>ProtoHydra</AssemblyName>
     <RootNamespace>DataService.App</RootNamespace>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>

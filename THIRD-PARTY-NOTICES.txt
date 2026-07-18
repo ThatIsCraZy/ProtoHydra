@@ -1,12 +1,12 @@
-THIRD-PARTY NOTICES for FileHydra
+THIRD-PARTY NOTICES for ProtoHydra
 =================================
 
-FileHydra itself is distributed under the MIT License (see the LICENSE file).
+ProtoHydra itself is distributed under the MIT License (see the LICENSE file).
 This distribution bundles the third-party components listed below. Each remains
 the property of its respective authors and is used under the license shown with it.
 The license texts reproduced here were taken from the packages as resolved at build time.
 
-Generated for FileHydra 1.4.
+Generated for ProtoHydra 1.4.
 
 -------------------------------------------------------------------------------
 Component: Avalonia 12.0.5

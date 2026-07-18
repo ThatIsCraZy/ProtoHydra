@@ -30,7 +30,7 @@ public sealed class CertificateManager : ICertificateManager
 
         using var rsa = RSA.Create(3072);
         var request = new CertificateRequest(
-            $"CN=FileHydra {purpose}",
+            $"CN=ProtoHydra {purpose}",
             rsa,
             HashAlgorithmName.SHA256,
             RSASignaturePadding.Pkcs1);

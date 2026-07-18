@@ -4,7 +4,7 @@ namespace DataService.Core.Tests.Infrastructure;
 
 public sealed class FirewallPolicyEvaluatorTests
 {
-    private const string ExecutablePath = @"C:\Apps\FileHydra\app.exe";
+    private const string ExecutablePath = @"C:\Apps\ProtoHydra\app.exe";
 
     private static FirewallProfileState Profile(
         FirewallProfile profile,

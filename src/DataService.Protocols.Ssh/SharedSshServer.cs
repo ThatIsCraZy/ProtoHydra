@@ -223,7 +223,7 @@ public sealed class SharedSshServer : IDisposable
     {
         var address = IPAddress.Parse(configuration.BindAddress);
         var pem = await _hostKeyStore.GetOrCreateRsaKeyPemAsync(cancellationToken).ConfigureAwait(false);
-        var server = new SshServer(new StartingInfo(address, configuration.Port, "SSH-2.0-FileHydra"));
+        var server = new SshServer(new StartingInfo(address, configuration.Port, "SSH-2.0-ProtoHydra"));
         server.AddHostKey("rsa-sha2-256", pem);
         server.AddHostKey("rsa-sha2-512", pem);
         server.ConnectionAccepted += HandleConnectionAccepted;

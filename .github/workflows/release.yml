@@ -1,6 +1,6 @@
 name: Build and Release
 
-# Baut die self-contained FileHydra.exe reproduzierbar in CI und haengt sie
+# Baut die self-contained ProtoHydra.exe reproduzierbar in CI und haengt sie
 # (plus THIRD-PARTY-NOTICES.txt) an den Release des jeweiligen Tags.
 #
 # Code Signing (SignPath Foundation):
@@ -46,14 +46,14 @@ jobs:
         run: |
           dotnet publish src/DataService.App/DataService.App.csproj -c Release
           New-Item -ItemType Directory -Force staging | Out-Null
-          Copy-Item src/DataService.App/bin/Release/net10.0/win-x64/publish/FileHydra.exe staging/FileHydra.exe
+          Copy-Item src/DataService.App/bin/Release/net10.0/win-x64/publish/ProtoHydra.exe staging/ProtoHydra.exe
 
       - name: Upload unsigned artifact
         id: unsigned
         uses: actions/upload-artifact@v4
         with:
-          name: FileHydra-unsigned
-          path: staging/FileHydra.exe
+          name: ProtoHydra-unsigned
+          path: staging/ProtoHydra.exe
           if-no-files-found: error
 
       - name: Submit signing request to SignPath
@@ -72,9 +72,9 @@ jobs:
       - name: Select final binary (signed if available)
         shell: pwsh
         run: |
-          $signed = Get-ChildItem signed -Recurse -Filter FileHydra.exe -ErrorAction SilentlyContinue | Select-Object -First 1
+          $signed = Get-ChildItem signed -Recurse -Filter ProtoHydra.exe -ErrorAction SilentlyContinue | Select-Object -First 1
           if ($signed) {
-            Copy-Item $signed.FullName staging/FileHydra.exe -Force
+            Copy-Item $signed.FullName staging/ProtoHydra.exe -Force
             Write-Host "Attaching SIGNED binary."
           } else {
             Write-Host "SignPath not configured - attaching UNSIGNED binary."
@@ -85,6 +85,6 @@ jobs:
         with:
           tag_name: ${{ github.event.inputs.tag || github.ref_name }}
           files: |
-            staging/FileHydra.exe
+            staging/ProtoHydra.exe
             THIRD-PARTY-NOTICES.txt
           fail_on_unmatched_files: true

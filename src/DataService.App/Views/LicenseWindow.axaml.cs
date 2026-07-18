@@ -16,10 +16,10 @@ public sealed partial class LicenseWindow : Window
 
     private static string BuildText()
     {
-        var mit = ReadResource("avares://FileHydra/Legal/LICENSE.txt");
-        var notices = ReadResource("avares://FileHydra/Legal/THIRD-PARTY-NOTICES.txt");
+        var mit = ReadResource("avares://ProtoHydra/Legal/LICENSE.txt");
+        var notices = ReadResource("avares://ProtoHydra/Legal/THIRD-PARTY-NOTICES.txt");
         return
-            "FileHydra — License (MIT)\n" +
+            "ProtoHydra — License (MIT)\n" +
             "==============================================================================\n\n" +
             mit +
             "\n\n\n" +

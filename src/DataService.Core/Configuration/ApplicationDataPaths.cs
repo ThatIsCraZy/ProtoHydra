@@ -2,7 +2,7 @@ namespace DataService.Core.Configuration;
 
 public static class ApplicationDataPaths
 {
-    public const string ProductDirectoryName = "FileHydra";
+    public const string ProductDirectoryName = "ProtoHydra";
 
     public static string Root
     {

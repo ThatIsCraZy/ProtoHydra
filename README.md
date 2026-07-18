@@ -1,5 +1,5 @@
 <a id="filehydra"></a>
-# FileHydra
+# ProtoHydra
 
 **Sprache / Language:  [🇩🇪 Deutsch](#-deutsch)  ·  [🇬🇧 English](#-english)**
 
@@ -11,22 +11,22 @@ _Multi-protocol file server for system administrators – seven protocols, one f
 <a id="-deutsch"></a>
 ## 🇩🇪 Deutsch
 
-FileHydra ist eine portable Windows-Desktopanwendung, die einen einzigen Ordner gleichzeitig über **TFTP, FTP, FTPS, SFTP, SCP, HTTP und HTTPS** bereitstellt. Statt für jeden Wartungsfall einen anderen Server zu installieren und zu konfigurieren, startest du FileHydra, wählst einen Ordner und aktivierst genau die Protokolle, die das Gerät oder der Client gerade erwartet – ohne Installation, ohne Dienst, ohne Domänenintegration.
+ProtoHydra ist eine portable Windows-Desktopanwendung, die einen einzigen Ordner gleichzeitig über **TFTP, FTP, FTPS, SFTP, SCP, HTTP und HTTPS** bereitstellt. Statt für jeden Wartungsfall einen anderen Server zu installieren und zu konfigurieren, startest du ProtoHydra, wählst einen Ordner und aktivierst genau die Protokolle, die das Gerät oder der Client gerade erwartet – ohne Installation, ohne Dienst, ohne Domänenintegration.
 
 Gedacht ist das Werkzeug für den Admin-Alltag: Netzwerkgeräte flashen, Appliances bootstrappen, Konfigurationen ein- und ausspielen, Recovery-Images ausliefern – oft an einem isolierten Wartungslaptop, direkt neben dem Rack.
 
 ![App-Screenshot](docs/screenshot.png)
 
-### Wofür Systemadministratoren FileHydra einsetzen
+### Wofür Systemadministratoren ProtoHydra einsetzen
 
-- **Firmware-Upgrades von Netzwerkgeräten.** Switches, Router, FC-Fabrics, WLAN-Controller und Storage-Appliances erwarten ihr Firmware-Image je nach Hersteller über TFTP, SCP oder SFTP – und oft mit exakt einem passenden Protokoll. FileHydra bietet den Firmware-Ordner über alle Varianten parallel an, sodass du nicht raten musst, welches das Zielgerät akzeptiert.
+- **Firmware-Upgrades von Netzwerkgeräten.** Switches, Router, FC-Fabrics, WLAN-Controller und Storage-Appliances erwarten ihr Firmware-Image je nach Hersteller über TFTP, SCP oder SFTP – und oft mit exakt einem passenden Protokoll. ProtoHydra bietet den Firmware-Ordner über alle Varianten parallel an, sodass du nicht raten musst, welches das Zielgerät akzeptiert.
 - **Backup und Restore von Gerätekonfigurationen.** `copy running-config tftp:` bzw. der SCP-/SFTP-Upload eines Config-Exports landet direkt im Root-Ordner; der Restore geht denselben Weg zurück.
 - **PXE- und Netzwerk-Boot.** Der TFTP-Dienst liefert Bootloader (`pxelinux.0`, `ipxe.efi`, WDS-Stufen), während HTTP große Boot-Images (WIM, Squashfs, ISO) deutlich schneller ausliefert als TFTP.
 - **Ausliefern von Treibern, Agents und Installationspaketen.** Ein Gerät oder Techniker im Feld lädt per HTTP/HTTPS im Browser oder per Skript – mit klickbarem Verzeichnislisting.
-- **Datenaustausch in abgeschotteten oder Air-Gap-Netzen.** Wenn kein zentraler Fileserver erreichbar ist, überbrückt ein Wartungslaptop mit FileHydra die Lücke, ohne dass etwas dauerhaft installiert wird.
+- **Datenaustausch in abgeschotteten oder Air-Gap-Netzen.** Wenn kein zentraler Fileserver erreichbar ist, überbrückt ein Wartungslaptop mit ProtoHydra die Lücke, ohne dass etwas dauerhaft installiert wird.
 - **Interoperabilitäts- und Client-Tests.** Reproduzierbar prüfen, wie sich ein Client oder eine Appliance gegenüber FTP, FTPS, SFTP oder klassischem SCP verhält – inklusive Live-Mitschnitt des Protokollverkehrs.
 
-> **Typischer Ablauf:** Wartungslaptop ins Geräte-VLAN, FileHydra starten, Firmware-Ordner als Root wählen, benötigtes Protokoll aktivieren, am Gerät den Transfer anstoßen, im Live-Log mitverfolgen – fertig.
+> **Typischer Ablauf:** Wartungslaptop ins Geräte-VLAN, ProtoHydra starten, Firmware-Ordner als Root wählen, benötigtes Protokoll aktivieren, am Gerät den Transfer anstoßen, im Live-Log mitverfolgen – fertig.
 
 ### Unterstützte Protokolle
 
@@ -60,15 +60,15 @@ Gedacht ist das Werkzeug für den Admin-Alltag: Netzwerkgeräte flashen, Applian
 
 **Voraussetzung:** Windows (x64). Es wird **kein** installiertes .NET benötigt – die Anwendung ist self-contained.
 
-Lade die aktuelle `FileHydra.exe` aus dem [Release-Bereich dieses Repositories](https://github.com/ThatIsCraZy/FileHydra/releases) herunter und starte sie direkt:
+Lade die aktuelle `ProtoHydra.exe` aus dem [Release-Bereich dieses Repositories](https://github.com/ThatIsCraZy/ProtoHydra/releases) herunter und starte sie direkt:
 
 ```powershell
-.\FileHydra.exe
+.\ProtoHydra.exe
 ```
 
 Keine Installation, kein Dienst, keine Registry-Einträge für die Anwendung selbst. Zum Deinstallieren genügt es, die EXE und den Datenordner (siehe unten) zu löschen.
 
-> **Ports unter 1024** (TFTP 69, FTP 21, SFTP/SCP 22, HTTP 80, HTTPS 443) erfordern unter Windows in der Regel administrative Rechte. Starte FileHydra als Administrator, wenn du die Standard-Ports nutzen willst, oder weiche im UI auf hohe Ports (z. B. 6969, 2121, 2222, 8080) aus.
+> **Ports unter 1024** (TFTP 69, FTP 21, SFTP/SCP 22, HTTP 80, HTTPS 443) erfordern unter Windows in der Regel administrative Rechte. Starte ProtoHydra als Administrator, wenn du die Standard-Ports nutzen willst, oder weiche im UI auf hohe Ports (z. B. 6969, 2121, 2222, 8080) aus.
 
 ### Verwendung
 
@@ -106,7 +106,7 @@ FTP/FTPS mit FileZilla, WinSCP oder curl (Host, Port `21`/`990`, beliebiger User
 
 ### Sicherheitshinweise
 
-> **⚠️ FileHydra ist kein gehärteter Produktivserver.**
+> **⚠️ ProtoHydra ist kein gehärteter Produktivserver.**
 
 Die Anwendung nutzt bewusst eine **Accept-Any-Authentifizierung**: Jeder Benutzername und jedes Passwort wird akzeptiert, es findet **keine Zugriffskontrolle** statt. Das ist für Wartungs- und Bootstrapping-Szenarien gewollt (Geräte liefern oft feste oder leere Credentials), macht das Tool aber **ungeeignet für den dauerhaften oder öffentlich erreichbaren Betrieb**.
 
@@ -118,7 +118,7 @@ Eingebaute Schutzmechanismen: mehrstufige Pfadvalidierung gegen Ausbruch aus dem
 
 ### Datenablage und Konfiguration
 
-Einstellungen liegen als JSON im Benutzerprofil. Laufzeitdaten (Zertifikate, SSH-Host-Key, Logs, Firewall-Helper) liegen unter `%LOCALAPPDATA%\FileHydra\`, der Standard-Root-Ordner unter `%LOCALAPPDATA%\FileHydra\Root`. Konfigurierbar sind u. a. RootPath, Protocols (Ports/Bind-Adressen/aktivierte Protokolle), Certificate (X.509 für HTTPS/FTPS), SshHostKey und LogSettings.
+Einstellungen liegen als JSON im Benutzerprofil. Laufzeitdaten (Zertifikate, SSH-Host-Key, Logs, Firewall-Helper) liegen unter `%LOCALAPPDATA%\ProtoHydra\`, der Standard-Root-Ordner unter `%LOCALAPPDATA%\ProtoHydra\Root`. Konfigurierbar sind u. a. RootPath, Protocols (Ports/Bind-Adressen/aktivierte Protokolle), Certificate (X.509 für HTTPS/FTPS), SshHostKey und LogSettings.
 
 ### Bauen aus dem Quellcode
 
@@ -130,7 +130,7 @@ dotnet publish src\DataService.App\DataService.App.csproj -c Release   # self-co
 dotnet test                                                            # Tests
 ```
 
-Die fertige EXE liegt unter `src\DataService.App\bin\Release\net10.0\win-x64\publish\FileHydra.exe`.
+Die fertige EXE liegt unter `src\DataService.App\bin\Release\net10.0\win-x64\publish\ProtoHydra.exe`.
 
 ### Projektarchitektur
 
@@ -148,11 +148,11 @@ src/
 
 ### Danksagung & verwendete Quellen
 
-FileHydra steht auf den Schultern hervorragender Open-Source-Arbeit. Unser aufrichtiger Dank gilt den Autorinnen und Autoren sowie den Maintainer-Teams der folgenden Projekte – ohne sie gäbe es dieses Werkzeug nicht:
+ProtoHydra steht auf den Schultern hervorragender Open-Source-Arbeit. Unser aufrichtiger Dank gilt den Autorinnen und Autoren sowie den Maintainer-Teams der folgenden Projekte – ohne sie gäbe es dieses Werkzeug nicht:
 
 **Direkt eingebundene Laufzeitbibliotheken**
 
-| Komponente | Zweck in FileHydra | Autor / Projekt | Lizenz |
+| Komponente | Zweck in ProtoHydra | Autor / Projekt | Lizenz |
 |---|---|---|---|
 | [Avalonia](https://avaloniaui.net) (`Avalonia`, `Avalonia.Desktop`, `Avalonia.Themes.Fluent`) | Plattform-GUI | AvaloniaUI OÜ & Contributors | MIT |
 | [CommunityToolkit.Mvvm](https://github.com/CommunityToolkit/dotnet) | MVVM-Grundgerüst | .NET Foundation & Contributors | MIT |
@@ -169,7 +169,7 @@ FileHydra steht auf den Schultern hervorragender Open-Source-Arbeit. Unser aufri
 **Referenzimplementierungen und Protokoll-Quellen** (kein fremder Quellcode übernommen – die interoperablen Wire-Protokolle wurden anhand dieser Projekte nachvollzogen):
 
 - [OpenSSH](https://www.openssh.com/) (BSD-artige Lizenz) – maßgebliche Referenz für das Verhalten des SCP-Protokolls (Exec-Modus, rekursive Übertragung, Rename-Semantik). Die vollständige Lizenz liegt unter [`THIRD-PARTY-NOTICES/OpenSSH/`](THIRD-PARTY-NOTICES/OpenSSH/).
-- [WinSCP](https://winscp.net/) – Referenz für das Verhalten des Shell-basierten SCP-Modus (Begin-/End-Marker, Return-Code-Erkennung, Kommando-Set), das FileHydra für die WinSCP-Kompatibilität nachbildet.
+- [WinSCP](https://winscp.net/) – Referenz für das Verhalten des Shell-basierten SCP-Modus (Begin-/End-Marker, Return-Code-Erkennung, Kommando-Set), das ProtoHydra für die WinSCP-Kompatibilität nachbildet.
 
 > Die vorstehenden Lizenzangaben dienen der Orientierung. **Maßgeblich ist stets die dem jeweiligen Projekt bzw. NuGet-Paket beiliegende Lizenz.** Alle genannten Komponenten verbleiben im Eigentum ihrer jeweiligen Rechteinhaber; ihre Lizenz- und Hinweispflichten gelten unverändert fort.
 
@@ -177,7 +177,7 @@ FileHydra steht auf den Schultern hervorragender Open-Source-Arbeit. Unser aufri
 
 Copyright © 2026 ThatIsCraZy.
 
-FileHydra (der Eigencode dieses Repositories) steht unter der **MIT-Lizenz**; der vollständige und rechtsverbindliche Lizenztext befindet sich in der Datei [LICENSE](LICENSE). Die nachfolgende Zusammenfassung dient nur der Übersicht und ersetzt den Lizenztext nicht.
+ProtoHydra (der Eigencode dieses Repositories) steht unter der **MIT-Lizenz**; der vollständige und rechtsverbindliche Lizenztext befindet sich in der Datei [LICENSE](LICENSE). Die nachfolgende Zusammenfassung dient nur der Übersicht und ersetzt den Lizenztext nicht.
 
 - **Erlaubt:** Nutzung, Vervielfältigung, Änderung, Zusammenführung, Veröffentlichung, Verbreitung, Unterlizenzierung und Verkauf – privat wie kommerziell.
 - **Bedingung:** Der obige Copyright-Vermerk und der Lizenztext müssen in allen Kopien oder wesentlichen Teilen der Software enthalten bleiben.
@@ -194,22 +194,22 @@ Teile des Eigencodes wurden mit Unterstützung von KI-Werkzeugen erstellt; die L
 <a id="-english"></a>
 ## 🇬🇧 English
 
-FileHydra is a portable Windows desktop application that serves a single folder simultaneously over **TFTP, FTP, FTPS, SFTP, SCP, HTTP and HTTPS**. Instead of installing and configuring a different server for every maintenance task, you launch FileHydra, pick a folder and enable exactly the protocols the device or client expects — no installation, no service, no domain integration.
+ProtoHydra is a portable Windows desktop application that serves a single folder simultaneously over **TFTP, FTP, FTPS, SFTP, SCP, HTTP and HTTPS**. Instead of installing and configuring a different server for every maintenance task, you launch ProtoHydra, pick a folder and enable exactly the protocols the device or client expects — no installation, no service, no domain integration.
 
 The tool is built for everyday admin work: flashing network gear, bootstrapping appliances, pushing and pulling configurations, delivering recovery images — often from an isolated maintenance laptop right next to the rack.
 
 ![Application screenshot](docs/screenshot.png)
 
-### What system administrators use FileHydra for
+### What system administrators use ProtoHydra for
 
-- **Firmware upgrades of network devices.** Switches, routers, FC fabrics, WLAN controllers and storage appliances expect their firmware image over TFTP, SCP or SFTP depending on the vendor — often via exactly one supported protocol. FileHydra offers the firmware folder over all of them at once, so you never have to guess which one the target device accepts.
+- **Firmware upgrades of network devices.** Switches, routers, FC fabrics, WLAN controllers and storage appliances expect their firmware image over TFTP, SCP or SFTP depending on the vendor — often via exactly one supported protocol. ProtoHydra offers the firmware folder over all of them at once, so you never have to guess which one the target device accepts.
 - **Backup and restore of device configurations.** `copy running-config tftp:` or an SCP/SFTP upload of a config export lands directly in the root folder; the restore takes the same path back.
 - **PXE and network boot.** The TFTP service delivers bootloaders (`pxelinux.0`, `ipxe.efi`, WDS stages), while HTTP serves large boot images (WIM, Squashfs, ISO) far faster than TFTP.
 - **Delivering drivers, agents and installers.** A device or an on-site technician downloads via HTTP/HTTPS in the browser or by script — with a clickable directory listing.
-- **Data exchange in segregated or air-gapped networks.** When no central file server is reachable, a maintenance laptop running FileHydra bridges the gap without installing anything permanently.
+- **Data exchange in segregated or air-gapped networks.** When no central file server is reachable, a maintenance laptop running ProtoHydra bridges the gap without installing anything permanently.
 - **Interoperability and client testing.** Reproducibly check how a client or appliance behaves against FTP, FTPS, SFTP or classic SCP — including a live capture of the protocol traffic.
 
-> **Typical workflow:** maintenance laptop into the device VLAN, launch FileHydra, select the firmware folder as root, enable the required protocol, trigger the transfer on the device, follow along in the live log — done.
+> **Typical workflow:** maintenance laptop into the device VLAN, launch ProtoHydra, select the firmware folder as root, enable the required protocol, trigger the transfer on the device, follow along in the live log — done.
 
 ### Supported protocols
 
@@ -243,15 +243,15 @@ The tool is built for everyday admin work: flashing network gear, bootstrapping 
 
 **Requirement:** Windows (x64). **No** installed .NET runtime is required — the application is self-contained.
 
-Download the latest `FileHydra.exe` from the [releases section of this repository](https://github.com/ThatIsCraZy/FileHydra/releases) and run it directly:
+Download the latest `ProtoHydra.exe` from the [releases section of this repository](https://github.com/ThatIsCraZy/ProtoHydra/releases) and run it directly:
 
 ```powershell
-.\FileHydra.exe
+.\ProtoHydra.exe
 ```
 
 No installation, no service, no registry entries for the application itself. To uninstall, simply delete the EXE and the data folder (see below).
 
-> **Ports below 1024** (TFTP 69, FTP 21, SFTP/SCP 22, HTTP 80, HTTPS 443) usually require administrative privileges on Windows. Run FileHydra as administrator to use the default ports, or switch to high ports (e.g. 6969, 2121, 2222, 8080) in the UI.
+> **Ports below 1024** (TFTP 69, FTP 21, SFTP/SCP 22, HTTP 80, HTTPS 443) usually require administrative privileges on Windows. Run ProtoHydra as administrator to use the default ports, or switch to high ports (e.g. 6969, 2121, 2222, 8080) in the UI.
 
 ### Usage
 
@@ -289,7 +289,7 @@ FTP/FTPS with FileZilla, WinSCP or curl (host, port `21`/`990`, any user/pass). 
 
 ### Security notice
 
-> **⚠️ FileHydra is not a hardened production server.**
+> **⚠️ ProtoHydra is not a hardened production server.**
 
 The application deliberately uses **Accept-Any authentication**: any username and password is accepted, and there is **no access control**. This is intentional for maintenance and bootstrapping scenarios (devices often supply fixed or empty credentials) but makes the tool **unsuitable for permanent or publicly reachable operation**.
 
@@ -301,7 +301,7 @@ Built-in safeguards: multi-stage path validation against root escape; blocking o
 
 ### Data storage and configuration
 
-Settings are stored as JSON in the user profile. Runtime data (certificates, SSH host key, logs, firewall helper) lives under `%LOCALAPPDATA%\FileHydra\`, the default root folder under `%LOCALAPPDATA%\FileHydra\Root`. Configurable items include RootPath, Protocols (ports/bind addresses/enabled protocols), Certificate (X.509 for HTTPS/FTPS), SshHostKey and LogSettings.
+Settings are stored as JSON in the user profile. Runtime data (certificates, SSH host key, logs, firewall helper) lives under `%LOCALAPPDATA%\ProtoHydra\`, the default root folder under `%LOCALAPPDATA%\ProtoHydra\Root`. Configurable items include RootPath, Protocols (ports/bind addresses/enabled protocols), Certificate (X.509 for HTTPS/FTPS), SshHostKey and LogSettings.
 
 ### Building from source
 
@@ -313,7 +313,7 @@ dotnet publish src\DataService.App\DataService.App.csproj -c Release   # self-co
 dotnet test                                                            # tests
 ```
 
-The finished EXE is located at `src\DataService.App\bin\Release\net10.0\win-x64\publish\FileHydra.exe`.
+The finished EXE is located at `src\DataService.App\bin\Release\net10.0\win-x64\publish\ProtoHydra.exe`.
 
 ### Project architecture
 
@@ -331,11 +331,11 @@ src/
 
 ### Acknowledgements & sources
 
-FileHydra stands on the shoulders of excellent open-source work. Our sincere thanks go to the authors and maintainer teams of the following projects — without them this tool would not exist:
+ProtoHydra stands on the shoulders of excellent open-source work. Our sincere thanks go to the authors and maintainer teams of the following projects — without them this tool would not exist:
 
 **Directly bundled runtime libraries**
 
-| Component | Role in FileHydra | Author / project | License |
+| Component | Role in ProtoHydra | Author / project | License |
 |---|---|---|---|
 | [Avalonia](https://avaloniaui.net) (`Avalonia`, `Avalonia.Desktop`, `Avalonia.Themes.Fluent`) | Cross-platform GUI | AvaloniaUI OÜ & contributors | MIT |
 | [CommunityToolkit.Mvvm](https://github.com/CommunityToolkit/dotnet) | MVVM foundation | .NET Foundation & contributors | MIT |
@@ -352,7 +352,7 @@ FileHydra stands on the shoulders of excellent open-source work. Our sincere tha
 **Reference implementations and protocol sources** (no third-party source code was copied — the interoperable wire protocols were reproduced by studying these projects):
 
 - [OpenSSH](https://www.openssh.com/) (BSD-style license) — the authoritative reference for SCP protocol behaviour (exec mode, recursive transfer, rename semantics). The full license is in [`THIRD-PARTY-NOTICES/OpenSSH/`](THIRD-PARTY-NOTICES/OpenSSH/).
-- [WinSCP](https://winscp.net/) — reference for the behaviour of the shell-based SCP mode (begin/end markers, return-code detection, command set) that FileHydra reimplements for WinSCP compatibility.
+- [WinSCP](https://winscp.net/) — reference for the behaviour of the shell-based SCP mode (begin/end markers, return-code detection, command set) that ProtoHydra reimplements for WinSCP compatibility.
 
 > The license information above is provided for orientation. **The authoritative license is always the one shipped with the respective project or NuGet package.** All listed components remain the property of their respective rights holders; their license and notice obligations continue to apply unchanged.
 
@@ -360,7 +360,7 @@ FileHydra stands on the shoulders of excellent open-source work. Our sincere tha
 
 Copyright © 2026 ThatIsCraZy.
 
-FileHydra (the original code in this repository) is licensed under the **MIT License**; the full and legally binding license text is in the [LICENSE](LICENSE) file. The following summary is for convenience only and does not replace the license text.
+ProtoHydra (the original code in this repository) is licensed under the **MIT License**; the full and legally binding license text is in the [LICENSE](LICENSE) file. The following summary is for convenience only and does not replace the license text.
 
 - **Permitted:** use, copy, modify, merge, publish, distribute, sublicense and sell — privately and commercially.
 - **Condition:** the above copyright notice and the license text must be retained in all copies or substantial portions of the software.
