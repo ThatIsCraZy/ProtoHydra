@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Watson" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DataService.Core\DataService.Core.csproj" />
+    <ProjectReference Include="..\DataService.Infrastructure\DataService.Infrastructure.csproj" />
+    <ProjectReference Include="..\DataService.Protocols.Abstractions\DataService.Protocols.Abstractions.csproj" />
+  </ItemGroup>
+
+</Project>

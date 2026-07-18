@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FxSsh" />
+    <PackageReference Include="Microsoft.Extensions.Options" />
+    <PackageReference Include="SFTPServer" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DataService.Core\DataService.Core.csproj" />
+    <ProjectReference Include="..\DataService.Protocols.Abstractions\DataService.Protocols.Abstractions.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="DataService.IntegrationTests" />
+  </ItemGroup>
+</Project>

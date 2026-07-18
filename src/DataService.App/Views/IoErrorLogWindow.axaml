@@ -1,0 +1,67 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:DataService.App.ViewModels"
+        x:Class="DataService.App.Views.IoErrorLogWindow"
+        x:DataType="vm:MainViewModel"
+        Width="960"
+        Height="500"
+        MinWidth="640"
+        MinHeight="320"
+        UseLayoutRounding="True"
+        Background="{DynamicResource AppBackgroundBrush}"
+        Title="IO Error Log — FileHydra"
+        WindowStartupLocation="CenterOwner">
+  <Grid RowDefinitions="Auto,*,Auto" Margin="14" RowSpacing="10">
+    <TextBlock Classes="caption"
+               Text="In-memory ring buffer (max. 256 entries, newest first). Kept in RAM on purpose so it works even while the IO subsystem is failing; it is not persisted." />
+
+    <Border Grid.Row="1" Classes="card" Padding="0">
+      <Grid RowDefinitions="Auto,*">
+        <Border Background="{DynamicResource AppPanelAltBrush}" CornerRadius="10,10,0,0">
+          <Grid ColumnDefinitions="96,64,190,260,*" ColumnSpacing="10" MinHeight="32">
+            <TextBlock Text="Time" Classes="colHead" Margin="12,8,0,5" />
+            <TextBlock Grid.Column="1" Text="Proto" Classes="colHead" Margin="0,8,0,5" />
+            <TextBlock Grid.Column="2" Text="Category" Classes="colHead" Margin="0,8,0,5" />
+            <TextBlock Grid.Column="3" Text="Path" Classes="colHead" Margin="0,8,0,5" />
+            <TextBlock Grid.Column="4" Text="Message" Classes="colHead" Margin="0,8,12,5" />
+          </Grid>
+        </Border>
+        <ScrollViewer Grid.Row="1">
+          <ItemsControl ItemsSource="{Binding IoErrorEntries}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:IoErrorEntryViewModel">
+                <Border BorderBrush="{DynamicResource AppBorderBrush}"
+                        BorderThickness="0,0,0,1"
+                        Padding="12,6">
+                  <Grid ColumnDefinitions="96,64,190,260,*" ColumnSpacing="10">
+                    <TextBlock Text="{Binding Time}" />
+                    <TextBlock Grid.Column="1" Text="{Binding Protocol}" FontWeight="SemiBold" />
+                    <TextBlock Grid.Column="2"
+                               Text="{Binding Category}"
+                               Foreground="{DynamicResource AppDangerBrush}"
+                               FontWeight="SemiBold" />
+                    <TextBlock Grid.Column="3" Text="{Binding Path}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Grid.Column="4" Text="{Binding Message}" TextWrapping="Wrap" />
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
+      </Grid>
+    </Border>
+
+    <Grid Grid.Row="2" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+      <TextBlock Text="Clearing the log resets the IO status to green."
+                 Classes="caption"
+                 VerticalAlignment="Center" />
+      <Button Grid.Column="1"
+              Content="Clear log"
+              Command="{Binding ClearIoErrorsCommand}" />
+      <Button Grid.Column="2"
+              Content="Close"
+              Classes="primary"
+              Click="Close_OnClick" />
+    </Grid>
+  </Grid>
+</Window>

@@ -1,0 +1,64 @@
+# ---------------------------------------------------------------------------
+# FileHydra .gitignore
+# ---------------------------------------------------------------------------
+
+# --- .NET build output ---
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
+publish/
+[Pp]ublish/
+*.dll
+*.pdb
+*.exe
+*.deps.json
+*.runtimeconfig.json
+
+# --- Test / coverage output ---
+[Tt]est[Rr]esults/
+TestResults/
+coverage*.json
+coverage*.xml
+coverage*.info
+*.coverage
+*.trx
+
+# --- IDE / editor ---
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.userprefs
+*.DotSettings.user
+
+# --- OS cruft ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- NuGet ---
+*.nupkg
+*.snupkg
+packages/
+.nuget/
+
+# --- Tooling / local environment ---
+.venv/
+.claude/
+AGENTS.md
+
+# --- Reference sources (studied, not part of the product) ---
+reference/
+
+# --- Test/runtime scratch data and generated artifacts ---
+test-artifacts/
+workspace-data/
+root-Publish-Testfolder/
+
+# --- Runtime logs ---
+transfer-capture-*.log
+*.log
+
+# --- MSBuild binary logs ---
+*.binlog

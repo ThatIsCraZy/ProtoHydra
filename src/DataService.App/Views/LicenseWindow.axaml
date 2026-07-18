@@ -1,0 +1,43 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="DataService.App.Views.LicenseWindow"
+        Width="900"
+        Height="640"
+        MinWidth="560"
+        MinHeight="360"
+        UseLayoutRounding="True"
+        Background="{DynamicResource AppBackgroundBrush}"
+        Title="Lizenzen &amp; Hinweise — FileHydra"
+        WindowStartupLocation="CenterOwner">
+  <Grid RowDefinitions="Auto,*,Auto" Margin="14" RowSpacing="10">
+    <StackPanel Spacing="4">
+      <TextBlock Text="Lizenzen &amp; Drittanbieter-Hinweise"
+                 FontSize="15"
+                 FontWeight="SemiBold" />
+      <TextBlock Classes="caption"
+                 TextWrapping="Wrap"
+                 Text="FileHydra selbst steht unter der MIT-Lizenz. Diese Anwendung bündelt die unten aufgeführten Open-Source-Komponenten, die jeweils unter ihren eigenen Lizenzen genutzt werden. Der vollständige Wortlaut ist hier enthalten und liegt zusätzlich als LICENSE und THIRD-PARTY-NOTICES.txt bei." />
+    </StackPanel>
+
+    <Border Grid.Row="1"
+            Classes="card"
+            Padding="0">
+      <ScrollViewer Padding="14" HorizontalScrollBarVisibility="Auto">
+        <SelectableTextBlock x:Name="LicenseText"
+                             FontFamily="Consolas, Cascadia Mono, monospace"
+                             FontSize="12"
+                             TextWrapping="NoWrap" />
+      </ScrollViewer>
+    </Border>
+
+    <Grid Grid.Row="2" ColumnDefinitions="*,Auto">
+      <TextBlock Classes="caption"
+                 VerticalAlignment="Center"
+                 Text="Maßgeblich ist stets die dem jeweiligen Projekt beiliegende Lizenz." />
+      <Button Grid.Column="1"
+              Content="Schließen"
+              Classes="primary"
+              Click="Close_OnClick" />
+    </Grid>
+  </Grid>
+</Window>

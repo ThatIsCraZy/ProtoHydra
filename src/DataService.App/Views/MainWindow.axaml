@@ -1,0 +1,390 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:DataService.App.ViewModels"
+        xmlns:controls="using:DataService.App.Controls"
+        x:Class="DataService.App.Views.MainWindow"
+        x:DataType="vm:MainViewModel"
+        Width="1280"
+        Height="820"
+        MinWidth="980"
+        MinHeight="640"
+        UseLayoutRounding="True"
+        Background="{DynamicResource AppBackgroundBrush}"
+        Title="FileHydra">
+  <DockPanel>
+    <Border DockPanel.Dock="Top" Background="{DynamicResource AppHeaderBrush}" Padding="18,12">
+      <Grid ColumnDefinitions="*,Auto,*,Auto,Auto" ColumnSpacing="14">
+        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12" VerticalAlignment="Center">
+          <Border Width="44"
+                  Height="44"
+                  CornerRadius="10"
+                  Background="{DynamicResource AppPrimaryBrush}"
+                  VerticalAlignment="Center">
+            <TextBlock Text="FH"
+                       Foreground="{DynamicResource AppPrimaryTextBrush}"
+                       FontSize="18"
+                       FontWeight="Bold"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center" />
+          </Border>
+          <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+            <TextBlock Text="FileHydra"
+                       Foreground="{DynamicResource AppInverseTextBrush}"
+                       FontSize="19"
+                       FontWeight="SemiBold" />
+            <TextBlock Text="{Binding AuthenticationWarning}"
+                       Foreground="{DynamicResource AppWarningTextBrush}"
+                       FontSize="12"
+                       TextWrapping="Wrap" />
+          </StackPanel>
+        </Grid>
+
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+          <Border Background="#14FFFFFF"
+                  BorderBrush="#28FFFFFF"
+                  BorderThickness="1"
+                  CornerRadius="8"
+                  Padding="18,7"
+                  VerticalAlignment="Center">
+            <StackPanel Spacing="1">
+              <TextBlock Text="Service Status"
+                         Foreground="{DynamicResource AppMutedTextBrush}"
+                         FontSize="11"
+                         HorizontalAlignment="Center" />
+              <TextBlock Text="{Binding ServiceStatus}"
+                         Foreground="{DynamicResource AppInverseTextBrush}"
+                         FontSize="16"
+                         FontWeight="SemiBold"
+                         HorizontalAlignment="Center" />
+            </StackPanel>
+          </Border>
+          <Border Background="#14FFFFFF"
+                  BorderBrush="#28FFFFFF"
+                  BorderThickness="1"
+                  CornerRadius="8"
+                  Padding="14,7"
+                  VerticalAlignment="Center">
+            <StackPanel Spacing="1">
+              <TextBlock Text="IO Status"
+                         Foreground="{DynamicResource AppMutedTextBrush}"
+                         FontSize="11"
+                         HorizontalAlignment="Center" />
+              <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                <Ellipse Width="10"
+                         Height="10"
+                         Fill="{Binding IoStatusBrush}"
+                         Stroke="#50FFFFFF"
+                         StrokeThickness="1"
+                         VerticalAlignment="Center" />
+                <TextBlock Text="{Binding IoStatusText}"
+                           Foreground="{DynamicResource AppInverseTextBrush}"
+                           FontSize="14"
+                           FontWeight="SemiBold" />
+              </StackPanel>
+              <Button Classes="link"
+                      Click="ViewIoErrorLog_OnClick"
+                      IsVisible="{Binding HasIoErrors}"
+                      HorizontalAlignment="Center">
+                <TextBlock Text="View IO error log"
+                           TextDecorations="Underline"
+                           FontSize="11"
+                           Foreground="#7CB5FF" />
+              </Button>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+
+        <Grid Grid.Column="3"
+              ColumnDefinitions="Auto,*"
+              RowDefinitions="Auto,Auto"
+              ColumnSpacing="10"
+              MinWidth="260"
+              VerticalAlignment="Center">
+          <Ellipse Width="12"
+                   Height="12"
+                   Fill="{Binding FirewallStatusBrush}"
+                   Stroke="#50FFFFFF"
+                   StrokeThickness="1"
+                   VerticalAlignment="Center" />
+          <StackPanel Grid.Column="1">
+            <TextBlock Text="{Binding FirewallStatusText}"
+                       Foreground="{DynamicResource AppInverseTextBrush}"
+                       FontSize="12"
+                       FontWeight="SemiBold" />
+            <TextBlock Text="{Binding FirewallDetailText}"
+                       Foreground="{DynamicResource AppMutedTextBrush}"
+                       FontSize="11"
+                       TextWrapping="Wrap"
+                       MaxWidth="300" />
+          </StackPanel>
+          <StackPanel Grid.Row="1"
+                      Grid.Column="1"
+                      Orientation="Horizontal"
+                      Spacing="6"
+                      Margin="0,6,0,0"
+                      HorizontalAlignment="Left">
+            <Button Content="Refresh Firewall"
+                    Command="{Binding RefreshFirewallStatusCommand}"
+                    Classes="ghost"
+                    MinHeight="26"
+                    Padding="9,3" />
+            <Button Content="{Binding FirewallFixButtonText}"
+                    Command="{Binding StartTemporaryFirewallFixCommand}"
+                    Classes="ghost"
+                    MinHeight="26"
+                    Padding="9,3" />
+          </StackPanel>
+        </Grid>
+
+        <StackPanel Grid.Column="4" VerticalAlignment="Center" Spacing="4">
+          <Button Content="{Binding ThemeToggleText}"
+                  Command="{Binding ToggleThemeCommand}"
+                  Classes="ghost"
+                  MinWidth="104"
+                  HorizontalAlignment="Right" />
+          <Button Classes="link"
+                  Click="ViewLicenses_OnClick"
+                  HorizontalAlignment="Right"
+                  ToolTip.Tip="Lizenz von FileHydra und aller verwendeten Open-Source-Komponenten anzeigen">
+            <TextBlock Text="Lizenzen &amp; Hinweise"
+                       TextDecorations="Underline"
+                       FontSize="11"
+                       Foreground="{DynamicResource AppMutedTextBrush}" />
+          </Button>
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <Grid Margin="14" RowDefinitions="Auto,2*,3*" RowSpacing="12">
+      <Grid ColumnDefinitions="1*,2*" ColumnSpacing="12">
+        <Border Classes="card" Padding="14,12">
+          <Grid RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="8">
+            <TextBlock Text="Root Folder" Classes="sectionTitle" />
+            <Grid Grid.Row="1" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+              <TextBox Text="{Binding PendingRootPath}" PlaceholderText="Shared file-service root" FontSize="12" />
+              <Button Grid.Column="1" Content="Browse" Click="BrowseRootButton_OnClick" />
+              <Button Grid.Column="2" Content="Apply" Classes="primary" Command="{Binding ApplyRootPathCommand}" />
+            </Grid>
+            <TextBlock Grid.Row="2"
+                       Text="{Binding RootStatus}"
+                       Foreground="{DynamicResource AppMutedTextBrush}" />
+            <StackPanel Grid.Row="3" Spacing="2">
+              <TextBlock Text="Active root folder" Classes="caption" />
+              <TextBlock Text="{Binding RootPath}"
+                         FontSize="12"
+                         TextWrapping="Wrap" />
+            </StackPanel>
+          </Grid>
+        </Border>
+
+        <Border Grid.Column="1" Classes="card" Padding="14,12">
+          <Grid RowDefinitions="Auto,Auto" RowSpacing="8">
+            <Grid ColumnDefinitions="*,120,112" ColumnSpacing="8">
+              <TextBlock Text="Traffic" Classes="sectionTitle" VerticalAlignment="Center" />
+              <ComboBox Grid.Column="1"
+                        ItemsSource="{Binding TrafficProtocolOptions}"
+                        SelectedItem="{Binding SelectedTrafficProtocol}" />
+              <TextBlock Grid.Column="2"
+                         Text="{Binding TrafficRateText}"
+                         FontSize="16"
+                         FontWeight="SemiBold"
+                         HorizontalAlignment="Right"
+                         VerticalAlignment="Center" />
+            </Grid>
+            <controls:TrafficGraphControl Grid.Row="1"
+                                          Height="108"
+                                          MaxHeight="108"
+                                          VerticalAlignment="Top"
+                                          Samples="{Binding TrafficSamples}" />
+          </Grid>
+        </Border>
+      </Grid>
+
+      <Border Grid.Row="1" Classes="card" Padding="0">
+        <Grid RowDefinitions="Auto,*">
+          <Border Background="{DynamicResource AppPanelAltBrush}" CornerRadius="10,10,0,0">
+            <Grid ColumnDefinitions="*,Auto,Auto" MinHeight="40">
+              <TextBlock Text="Protocols" Classes="sectionTitle" Margin="14,0,8,0" VerticalAlignment="Center" />
+              <Button Grid.Column="1"
+                      Content="Start All"
+                      Command="{Binding StartAllCommand}"
+                      Classes="primary"
+                      Margin="6,5"
+                      MinWidth="94" />
+              <Button Grid.Column="2"
+                      Content="Stop All"
+                      Command="{Binding StopAllCommand}"
+                      Classes="danger"
+                      Margin="6,5,10,5"
+                      MinWidth="94" />
+            </Grid>
+          </Border>
+
+          <ScrollViewer Grid.Row="1">
+            <ItemsControl ItemsSource="{Binding Frontends}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:FrontendViewModel">
+                  <Border BorderBrush="{DynamicResource AppBorderBrush}"
+                          BorderThickness="0,0,0,1"
+                          Padding="14,8">
+                    <Grid ColumnDefinitions="110,94,82,124,*,112,112" ColumnSpacing="10">
+                      <StackPanel VerticalAlignment="Center" Spacing="1">
+                        <TextBlock Text="{Binding ProtocolText}" FontSize="15" FontWeight="SemiBold" />
+                        <TextBlock Text="{Binding AvailabilityText}" Classes="caption" />
+                      </StackPanel>
+
+                      <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+                        <TextBlock Text="Status" Classes="caption" />
+                        <TextBlock Text="{Binding StateText}" FontSize="12" FontWeight="SemiBold" />
+                      </StackPanel>
+
+                      <StackPanel Grid.Column="2" Spacing="2">
+                        <TextBlock Text="{Binding PortLabel}" Classes="caption" />
+                        <TextBox Text="{Binding Port}" IsEnabled="{Binding IsAvailable}" />
+                      </StackPanel>
+
+                      <StackPanel Grid.Column="3" Spacing="2">
+                        <TextBlock Text="{Binding BindAddressLabel}" Classes="caption" />
+                        <TextBox Text="{Binding BindAddress}" IsEnabled="{Binding IsAvailable}" />
+                      </StackPanel>
+
+                      <StackPanel Grid.Column="4" VerticalAlignment="Center" Spacing="1">
+                        <TextBlock Text="Capability" Classes="caption" />
+                        <TextBlock Text="{Binding CapabilityText}" FontSize="12" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding Detail}" Classes="caption" TextWrapping="Wrap" />
+                      </StackPanel>
+
+                      <Button Grid.Column="5"
+                              Content="{Binding StartLabel}"
+                              Command="{Binding StartCommand}"
+                              Classes="primary"
+                              VerticalAlignment="Center"
+                              MinWidth="104" />
+                      <Button Grid.Column="6"
+                              Content="{Binding StopLabel}"
+                              Command="{Binding StopCommand}"
+                              Classes="danger"
+                              VerticalAlignment="Center"
+                              MinWidth="104" />
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+        </Grid>
+      </Border>
+
+      <Border Grid.Row="2" Classes="card" Padding="0">
+        <Grid RowDefinitions="Auto,*">
+          <Border Background="{DynamicResource AppPanelAltBrush}" CornerRadius="10,10,0,0">
+            <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto" MinHeight="40">
+              <TextBlock Text="Live Log" Classes="sectionTitle" Margin="14,0,8,0" VerticalAlignment="Center" />
+              <TextBlock Grid.Column="1"
+                         Text="{Binding CaptureStatusText}"
+                         Classes="caption"
+                         Classes.recording="{Binding IsCapturing}"
+                         VerticalAlignment="Center"
+                         HorizontalAlignment="Right"
+                         Margin="8,0"
+                         TextTrimming="CharacterEllipsis" />
+              <Button Grid.Column="2"
+                      Content="{Binding CaptureButtonText}"
+                      Command="{Binding ToggleCaptureCommand}"
+                      Classes.capturing="{Binding IsCapturing}"
+                      ToolTip.Tip="Records all transfer commands and server responses to a plaintext log next to the executable until pressed again."
+                      Margin="6,5"
+                      MinWidth="110" />
+              <ToggleButton Grid.Column="3"
+                            Content="{Binding LogPauseText}"
+                            Command="{Binding ToggleLogPauseCommand}"
+                            Margin="6,5" />
+              <Button Grid.Column="4" Content="Clear" Command="{Binding ClearLogCommand}" Margin="6,5" />
+              <Button Grid.Column="5" Content="Export" Command="{Binding ExportLogCommand}" Margin="6,5,10,5" />
+            </Grid>
+          </Border>
+
+          <ScrollViewer Grid.Row="1"
+                        HorizontalScrollBarVisibility="Auto"
+                        VerticalScrollBarVisibility="Disabled">
+            <Grid RowDefinitions="Auto,*" MinWidth="2064">
+              <Grid ColumnDefinitions="100,84,160,140,170,360,90,90,100,110,660"
+                    Background="{DynamicResource AppPanelAltBrush}"
+                    MinHeight="30">
+                <TextBlock Text="Time" Classes="colHead" Margin="14,8,4,5" />
+                <TextBlock Grid.Column="1" Text="Proto" Classes="colHead" Margin="4,8,4,5" />
+                <TextBlock Grid.Column="2" Text="Event" Classes="colHead" Margin="4,8,4,5" />
+                <TextBlock Grid.Column="3" Text="Source" Classes="colHead" Margin="4,8,4,5" />
+                <TextBlock Grid.Column="4" Text="Command" Classes="colHead" Margin="4,8,4,5" />
+                <TextBlock Grid.Column="5" Text="Path" Classes="colHead" Margin="4,8,4,5" />
+                <TextBlock Grid.Column="6" Text="Dir" Classes="colHead" Margin="4,8,4,5" />
+                <TextBlock Grid.Column="7" Text="Bytes" Classes="colHead" Margin="4,8,4,5" />
+                <TextBlock Grid.Column="8" Text="Result" Classes="colHead" Margin="4,8,4,5" />
+                <TextBlock Grid.Column="9" Text="Duration" Classes="colHead" Margin="4,8,4,5" />
+                <TextBlock Grid.Column="10" Text="Message" Classes="colHead" Margin="4,8,8,5" />
+              </Grid>
+
+              <ScrollViewer Grid.Row="1"
+                            HorizontalScrollBarVisibility="Disabled"
+                            VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding LiveLog}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:LogEventViewModel">
+                      <Grid ColumnDefinitions="100,84,160,140,170,360,90,90,100,110,660" MinHeight="28">
+                        <Border BorderBrush="{DynamicResource AppBorderBrush}" BorderThickness="0,0,0,1" Grid.ColumnSpan="11" />
+                        <TextBlock Text="{Binding Time}" Margin="14,5,4,3" />
+                        <Border Grid.Column="1"
+                                Background="{Binding ProtocolBrush}"
+                                CornerRadius="999"
+                                Margin="4,4,10,4"
+                                Padding="8,1">
+                          <TextBlock Text="{Binding Protocol}"
+                                     Foreground="{DynamicResource AppInverseTextBrush}"
+                                     FontWeight="SemiBold" />
+                        </Border>
+                        <TextBlock Grid.Column="2" Text="{Binding Event}" Margin="4,5,4,3" />
+                        <Border Grid.Column="3"
+                                Background="{Binding SourceBrush}"
+                                CornerRadius="999"
+                                Margin="4,4,10,4"
+                                Padding="8,1">
+                          <TextBlock Text="{Binding Source}"
+                                     Foreground="{DynamicResource AppInverseTextBrush}"
+                                     FontWeight="SemiBold"
+                                     TextTrimming="CharacterEllipsis" />
+                        </Border>
+                        <Border Grid.Column="4"
+                                Background="{Binding CommandBrush}"
+                                CornerRadius="999"
+                                Margin="4,4,10,4"
+                                Padding="8,1">
+                          <TextBlock Text="{Binding Command}"
+                                     Foreground="{DynamicResource AppInverseTextBrush}"
+                                     FontWeight="SemiBold"
+                                     TextTrimming="CharacterEllipsis" />
+                        </Border>
+                        <TextBlock Grid.Column="5" Text="{Binding Path}" Margin="4,5,4,3" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Grid.Column="6" Text="{Binding Direction}" Margin="4,5,4,3" />
+                        <TextBlock Grid.Column="7" Text="{Binding Bytes}" Margin="4,5,4,3" />
+                        <TextBlock Grid.Column="8"
+                                   Text="{Binding Result}"
+                                   Classes.resultFailed="{Binding IsFailed}"
+                                   Classes.resultRejected="{Binding IsRejected}"
+                                   Margin="4,5,4,3" />
+                        <TextBlock Grid.Column="9" Text="{Binding Duration}" Margin="4,5,4,3" />
+                        <TextBlock Grid.Column="10"
+                                   Text="{Binding Message}"
+                                   Margin="4,5,8,3"
+                                   TextWrapping="Wrap" />
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </ScrollViewer>
+            </Grid>
+          </ScrollViewer>
+        </Grid>
+      </Border>
+    </Grid>
+  </DockPanel>
+</Window>

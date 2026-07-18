@@ -1,0 +1,54 @@
+{
+  "version": 2,
+  "dependencies": {
+    "net10.0": {
+      "Watson": {
+        "type": "Direct",
+        "requested": "[7.0.15, )",
+        "resolved": "7.0.15",
+        "contentHash": "G4eG3QYLOnn1m/UgjpIt5sNIqbhJisze9QHWpReLMHE2vXXIo7B41RZTnlCtaCqCaT6wmDgRxlDJTLXyQBbB3w==",
+        "dependencies": {
+          "IpMatcher": "1.0.5",
+          "RegexMatcher": "1.0.9",
+          "Timestamps": "1.0.12",
+          "UrlMatcher": "3.0.2"
+        }
+      },
+      "IpMatcher": {
+        "type": "Transitive",
+        "resolved": "1.0.5",
+        "contentHash": "WXNlWERj+0GN699AnMNsuJ7PfUAbU4xhOHP3nrNXLHqbOaBxybu25luSYywX1133NSlitA4YkSNmJuyPvea4sw=="
+      },
+      "RegexMatcher": {
+        "type": "Transitive",
+        "resolved": "1.0.9",
+        "contentHash": "RkQGXIrqHjD5h1mqefhgCbkaSdRYNRG5rrbzyw5zeLWiS0K1wq9xR3cNhQdzYR2MsKZ3GN523yRUsEQIMPxh3Q=="
+      },
+      "Timestamps": {
+        "type": "Transitive",
+        "resolved": "1.0.12",
+        "contentHash": "J4tykk0YeLKgCDgO7BHS5yZnMj+cU+dB1OJg+JsLrwN1weV0pFKXX2Z+GKml7iltW8BeF9kMsqOJMWX8v42dhg=="
+      },
+      "UrlMatcher": {
+        "type": "Transitive",
+        "resolved": "3.0.2",
+        "contentHash": "JZJPMwSGfCqv6J1FGPU4PRihu20eSnlYQGfymrMsepLaL1sdAimy4MV+5wdlyJATK2gzccavEMzYBOisWddH9g=="
+      },
+      "dataservice.core": {
+        "type": "Project"
+      },
+      "dataservice.infrastructure": {
+        "type": "Project",
+        "dependencies": {
+          "DataService.Core": "[1.0.0, )"
+        }
+      },
+      "dataservice.protocols.abstractions": {
+        "type": "Project",
+        "dependencies": {
+          "DataService.Core": "[1.0.0, )"
+        }
+      }
+    }
+  }
+}

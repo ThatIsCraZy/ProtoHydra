@@ -1,0 +1,8 @@
+{
+  "repository": "https://github.com/PowerShell/openssh-portable.git",
+  "branch": "latestw_all",
+  "commit": "e98b11e5de035cbd0eecbddc95a87da42f14671f",
+  "referencePath": "reference/openssh-portable",
+  "lockedAtUtc": "2026-07-04T00:00:00Z",
+  "notes": "Reference checkout for the managed classic SCP file-transfer state machine. The checkout is not compiled or packaged."
+}

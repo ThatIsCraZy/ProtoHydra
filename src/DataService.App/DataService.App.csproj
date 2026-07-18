@@ -1,0 +1,54 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>FileHydra</AssemblyName>
+    <RootNamespace>DataService.App</RootNamespace>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <DebugType Condition="'$(Configuration)' == 'Release'">none</DebugType>
+    <DebugSymbols Condition="'$(Configuration)' == 'Release'">false</DebugSymbols>
+    <CopyOutputSymbolsToPublishDirectory>false</CopyOutputSymbolsToPublishDirectory>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- License texts shown in the in-app license window; single source of truth is the repo root. -->
+    <AvaloniaResource Include="..\..\LICENSE" Link="Legal\LICENSE.txt" />
+    <AvaloniaResource Include="..\..\THIRD-PARTY-NOTICES.txt" Link="Legal\THIRD-PARTY-NOTICES.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" />
+    <PackageReference Include="Avalonia.Desktop" />
+    <PackageReference Include="Avalonia.Themes.Fluent" />
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
+    <PackageReference Include="Serilog.Extensions.Logging" />
+    <PackageReference Include="Serilog.Sinks.File" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DataService.Core\DataService.Core.csproj" />
+    <ProjectReference Include="..\DataService.Infrastructure\DataService.Infrastructure.csproj" />
+    <ProjectReference Include="..\DataService.Protocols.Abstractions\DataService.Protocols.Abstractions.csproj" />
+    <ProjectReference Include="..\DataService.Protocols.Ftp\DataService.Protocols.Ftp.csproj" />
+    <ProjectReference Include="..\DataService.Protocols.Http\DataService.Protocols.Http.csproj" />
+    <ProjectReference Include="..\DataService.Protocols.Ssh\DataService.Protocols.Ssh.csproj" />
+    <ProjectReference Include="..\DataService.Protocols.Tftp\DataService.Protocols.Tftp.csproj" />
+  </ItemGroup>
+
+  <Target Name="RemovePublishSymbols" AfterTargets="Publish">
+    <ItemGroup>
+      <PublishSymbols Include="$(PublishDir)**\*.pdb" />
+    </ItemGroup>
+    <Delete Files="@(PublishSymbols)" />
+  </Target>
+</Project>

@@ -1,0 +1,214 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="DataService.App.App">
+  <Application.Styles>
+    <FluentTheme />
+    <Style Selector="Window">
+      <Setter Property="FontFamily" Value="Segoe UI Variable Text, Segoe UI, sans-serif" />
+      <Setter Property="FontSize" Value="12" />
+    </Style>
+    <Style Selector="TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource AppTextBrush}" />
+    </Style>
+
+    <!-- Karten-Panels -->
+    <Style Selector="Border.card">
+      <Setter Property="Background" Value="{DynamicResource AppPanelBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AppBorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="BoxShadow" Value="0 2 8 0 #14000000" />
+    </Style>
+
+    <!-- Beschriftungen -->
+    <Style Selector="TextBlock.caption">
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="Foreground" Value="{DynamicResource AppMutedTextBrush}" />
+    </Style>
+    <Style Selector="TextBlock.sectionTitle">
+      <Setter Property="FontSize" Value="13" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="TextBlock.colHead">
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{DynamicResource AppMutedTextBrush}" />
+    </Style>
+
+    <!-- Eingabefelder -->
+    <Style Selector="TextBox">
+      <Setter Property="Background" Value="{DynamicResource AppInputBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource AppTextBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AppBorderBrush}" />
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="MinHeight" Value="30" />
+      <Setter Property="Padding" Value="9,5" />
+    </Style>
+    <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
+      <Setter Property="BorderBrush" Value="{DynamicResource AppPrimaryBrush}" />
+    </Style>
+    <Style Selector="ComboBox">
+      <Setter Property="Background" Value="{DynamicResource AppInputBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource AppTextBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AppBorderBrush}" />
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="MinHeight" Value="30" />
+      <Setter Property="Padding" Value="9,5" />
+    </Style>
+
+    <!-- Buttons -->
+    <Style Selector="Button">
+      <Setter Property="MinHeight" Value="30" />
+      <Setter Property="Padding" Value="12,5" />
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="Background" Value="{DynamicResource AppButtonBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource AppTextBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AppBorderBrush}" />
+    </Style>
+    <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AppButtonHoverBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource AppTextBrush}" />
+    </Style>
+    <Style Selector="Button.primary">
+      <Setter Property="Background" Value="{DynamicResource AppPrimaryBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource AppPrimaryTextBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AppPrimaryBrush}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="Button.primary:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AppPrimaryHoverBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource AppPrimaryTextBrush}" />
+    </Style>
+    <Style Selector="Button.danger">
+      <Setter Property="Background" Value="{DynamicResource AppDangerBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource AppPrimaryTextBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AppDangerBrush}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="Button.danger:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AppDangerHoverBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource AppPrimaryTextBrush}" />
+    </Style>
+    <Style Selector="Button.ghost">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Foreground" Value="{DynamicResource AppInverseTextBrush}" />
+      <Setter Property="BorderBrush" Value="#40FFFFFF" />
+    </Style>
+    <Style Selector="Button.ghost:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="#22FFFFFF" />
+      <Setter Property="Foreground" Value="{DynamicResource AppInverseTextBrush}" />
+    </Style>
+
+    <Style Selector="ToggleButton">
+      <Setter Property="MinHeight" Value="30" />
+      <Setter Property="Padding" Value="12,5" />
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="Background" Value="{DynamicResource AppButtonBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource AppTextBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AppBorderBrush}" />
+    </Style>
+
+    <!-- Aktive Transfer-Capture-Aufnahme: roter, pulsierender Button -->
+    <Style Selector="Button.capturing">
+      <Setter Property="Background" Value="{DynamicResource AppDangerBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource AppPrimaryTextBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AppDangerBrush}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Style.Animations>
+        <Animation Duration="0:0:1.4" IterationCount="INFINITE">
+          <KeyFrame Cue="0%">
+            <Setter Property="Opacity" Value="1" />
+          </KeyFrame>
+          <KeyFrame Cue="50%">
+            <Setter Property="Opacity" Value="0.55" />
+          </KeyFrame>
+          <KeyFrame Cue="100%">
+            <Setter Property="Opacity" Value="1" />
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+    <Style Selector="Button.capturing:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AppDangerHoverBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource AppPrimaryTextBrush}" />
+    </Style>
+    <Style Selector="TextBlock.recording">
+      <Setter Property="Foreground" Value="{DynamicResource AppDangerBrush}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <!-- Ergebnis-Spalte im Live Log: Fehlschläge hervorheben -->
+    <Style Selector="TextBlock.resultFailed">
+      <Setter Property="Foreground" Value="{DynamicResource AppDangerBrush}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="TextBlock.resultRejected">
+      <Setter Property="Foreground" Value="#D97706" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <!-- Link-artiger Button (z. B. "View IO error log" im Header) -->
+    <Style Selector="Button.link">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="MinHeight" Value="0" />
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="Button.link:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="ToggleButton:checked /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AppPrimaryBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource AppPrimaryTextBrush}" />
+    </Style>
+  </Application.Styles>
+  <Application.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Light">
+          <SolidColorBrush x:Key="AppBackgroundBrush" Color="#EDF1F7" />
+          <SolidColorBrush x:Key="AppHeaderBrush" Color="#111827" />
+          <SolidColorBrush x:Key="AppPanelBrush" Color="#FFFFFF" />
+          <SolidColorBrush x:Key="AppPanelAltBrush" Color="#F5F7FB" />
+          <SolidColorBrush x:Key="AppInputBrush" Color="#FFFFFF" />
+          <SolidColorBrush x:Key="AppTextBrush" Color="#17202B" />
+          <SolidColorBrush x:Key="AppMutedTextBrush" Color="#5B6B7E" />
+          <SolidColorBrush x:Key="AppInverseTextBrush" Color="#FFFFFF" />
+          <SolidColorBrush x:Key="AppWarningTextBrush" Color="#FFD48A" />
+          <SolidColorBrush x:Key="AppBorderBrush" Color="#D4DCE6" />
+          <SolidColorBrush x:Key="AppButtonBrush" Color="#F1F4F8" />
+          <SolidColorBrush x:Key="AppButtonHoverBrush" Color="#E3EAF3" />
+          <SolidColorBrush x:Key="AppPrimaryBrush" Color="#2563EB" />
+          <SolidColorBrush x:Key="AppPrimaryHoverBrush" Color="#1D4FD7" />
+          <SolidColorBrush x:Key="AppPrimaryTextBrush" Color="#FFFFFF" />
+          <SolidColorBrush x:Key="AppDangerBrush" Color="#DC2626" />
+          <SolidColorBrush x:Key="AppDangerHoverBrush" Color="#B91C1C" />
+          <SolidColorBrush x:Key="AppGoodBrush" Color="#16A34A" />
+          <SolidColorBrush x:Key="AppDisabledBrush" Color="#DEE4EC" />
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Dark">
+          <SolidColorBrush x:Key="AppBackgroundBrush" Color="#0C1017" />
+          <SolidColorBrush x:Key="AppHeaderBrush" Color="#070B12" />
+          <SolidColorBrush x:Key="AppPanelBrush" Color="#141B26" />
+          <SolidColorBrush x:Key="AppPanelAltBrush" Color="#1B2432" />
+          <SolidColorBrush x:Key="AppInputBrush" Color="#0E141D" />
+          <SolidColorBrush x:Key="AppTextBrush" Color="#EDF2F8" />
+          <SolidColorBrush x:Key="AppMutedTextBrush" Color="#9AA8B9" />
+          <SolidColorBrush x:Key="AppInverseTextBrush" Color="#FFFFFF" />
+          <SolidColorBrush x:Key="AppWarningTextBrush" Color="#FFD48A" />
+          <SolidColorBrush x:Key="AppBorderBrush" Color="#2E3B4C" />
+          <SolidColorBrush x:Key="AppButtonBrush" Color="#223047" />
+          <SolidColorBrush x:Key="AppButtonHoverBrush" Color="#2C3D58" />
+          <SolidColorBrush x:Key="AppPrimaryBrush" Color="#60A5FA" />
+          <SolidColorBrush x:Key="AppPrimaryHoverBrush" Color="#7CB5FF" />
+          <SolidColorBrush x:Key="AppPrimaryTextBrush" Color="#0A1524" />
+          <SolidColorBrush x:Key="AppDangerBrush" Color="#F87171" />
+          <SolidColorBrush x:Key="AppDangerHoverBrush" Color="#FB8C8C" />
+          <SolidColorBrush x:Key="AppGoodBrush" Color="#4ADE80" />
+          <SolidColorBrush x:Key="AppDisabledBrush" Color="#223041" />
+        </ResourceDictionary>
+      </ResourceDictionary.ThemeDictionaries>
+    </ResourceDictionary>
+  </Application.Resources>
+</Application>

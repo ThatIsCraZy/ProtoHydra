@@ -1,0 +1,16 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/DataService.App/DataService.App.csproj" />
+    <Project Path="src/DataService.Core/DataService.Core.csproj" />
+    <Project Path="src/DataService.Infrastructure/DataService.Infrastructure.csproj" />
+    <Project Path="src/DataService.Protocols.Abstractions/DataService.Protocols.Abstractions.csproj" />
+    <Project Path="src/DataService.Protocols.Ftp/DataService.Protocols.Ftp.csproj" />
+    <Project Path="src/DataService.Protocols.Http/DataService.Protocols.Http.csproj" />
+    <Project Path="src/DataService.Protocols.Ssh/DataService.Protocols.Ssh.csproj" />
+    <Project Path="src/DataService.Protocols.Tftp/DataService.Protocols.Tftp.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/DataService.Core.Tests/DataService.Core.Tests.csproj" />
+    <Project Path="tests/DataService.IntegrationTests/DataService.IntegrationTests.csproj" />
+  </Folder>
+</Solution>

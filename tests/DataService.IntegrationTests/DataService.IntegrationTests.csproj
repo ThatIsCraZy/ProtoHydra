@@ -1,0 +1,34 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" />
+    <PackageReference Include="FluentFTP" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="SSH.NET" />
+    <PackageReference Include="Tftp.Net" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\DataService.Core\DataService.Core.csproj" />
+    <ProjectReference Include="..\..\src\DataService.Infrastructure\DataService.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\DataService.Protocols.Abstractions\DataService.Protocols.Abstractions.csproj" />
+    <ProjectReference Include="..\..\src\DataService.Protocols.Ftp\DataService.Protocols.Ftp.csproj" />
+    <ProjectReference Include="..\..\src\DataService.Protocols.Http\DataService.Protocols.Http.csproj" />
+    <ProjectReference Include="..\..\src\DataService.Protocols.Ssh\DataService.Protocols.Ssh.csproj" />
+    <ProjectReference Include="..\..\src\DataService.Protocols.Tftp\DataService.Protocols.Tftp.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+</Project>
