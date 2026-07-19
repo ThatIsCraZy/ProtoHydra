@@ -13,9 +13,11 @@ information in reports.
 ## Scope note
 
 ProtoHydra is a maintenance/lab tool that deliberately ships with an
-**Accept-Any authentication policy** (every username/password is accepted, no
-access control) and can create a **temporary, user-approved (elevated) Windows
-Firewall allow rule** for its own listener ports. Both are documented, opt-in
+**Accept-Any authentication policy by default** (every username/password is
+accepted, no access control; optionally switchable to defined users with
+Argon2id-hashed passwords via *Configure Authentication*) and can create a
+**temporary, user-approved (elevated) Windows Firewall allow rule** for its own
+listener ports. Both are documented, opt-in
 maintenance features — not attempts to exploit vulnerabilities or circumvent
 security controls. ProtoHydra is intended for controlled maintenance/device
 networks, **not** for permanent or publicly reachable operation. Reports that

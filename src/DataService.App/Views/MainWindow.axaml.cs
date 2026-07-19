@@ -9,6 +9,7 @@ public sealed partial class MainWindow : Window
 {
     private IoErrorLogWindow? _ioErrorLogWindow;
     private LicenseWindow? _licenseWindow;
+    private AuthenticationWindow? _authenticationWindow;
 
     public MainWindow()
     {
@@ -26,6 +27,27 @@ public sealed partial class MainWindow : Window
         _licenseWindow = new LicenseWindow();
         _licenseWindow.Closed += (_, _) => _licenseWindow = null;
         _licenseWindow.Show(this);
+    }
+
+    private void ConfigureAuthentication_OnClick(object? sender, RoutedEventArgs e)
+    {
+        if (_authenticationWindow is { IsVisible: true })
+        {
+            _authenticationWindow.Activate();
+            return;
+        }
+
+        if (DataContext is not MainViewModel viewModel)
+        {
+            return;
+        }
+
+        _authenticationWindow = new AuthenticationWindow
+        {
+            DataContext = viewModel.CreateAuthenticationViewModel()
+        };
+        _authenticationWindow.Closed += (_, _) => _authenticationWindow = null;
+        _authenticationWindow.Show(this);
     }
 
     private void ViewIoErrorLog_OnClick(object? sender, RoutedEventArgs e)

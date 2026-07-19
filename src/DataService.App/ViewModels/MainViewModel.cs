@@ -6,6 +6,7 @@ using Avalonia.Styling;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using DataService.Core.Authentication;
 using DataService.Core.Configuration;
 using DataService.Core.Diagnostics;
 using DataService.Core.Events;
@@ -21,6 +22,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private readonly AppConfiguration _configuration;
     private readonly ITransferEventBus _eventBus;
+    private readonly RuntimeAuthenticationPolicy _authenticationPolicy;
+    private readonly AuthenticationSettingsStore _authenticationSettingsStore;
     private readonly IFirewallStatusService _firewallStatusService;
     private readonly IFirewallTemporaryRuleService _firewallTemporaryRuleService;
     private readonly IoErrorLog _ioErrorLog;
@@ -51,6 +54,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public MainViewModel(
         AppConfiguration configuration,
         ITransferEventBus eventBus,
+        RuntimeAuthenticationPolicy authenticationPolicy,
+        AuthenticationSettingsStore authenticationSettingsStore,
         IFirewallStatusService firewallStatusService,
         IFirewallTemporaryRuleService firewallTemporaryRuleService,
         IoErrorLog ioErrorLog,
@@ -58,6 +63,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         _configuration = configuration;
         _eventBus = eventBus;
+        _authenticationPolicy = authenticationPolicy;
+        _authenticationSettingsStore = authenticationSettingsStore;
+        _authenticationPolicy.PolicyChanged += (_, _) =>
+            Dispatcher.UIThread.Post(() => OnPropertyChanged(nameof(AuthenticationWarning)));
         _firewallStatusService = firewallStatusService;
         _firewallTemporaryRuleService = firewallTemporaryRuleService;
         _ioErrorLog = ioErrorLog;
@@ -177,7 +186,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
-    public string AuthenticationWarning => "Accept-Any authentication is not access control. Every supplied username and password is accepted.";
+    public string AuthenticationWarning
+        => _authenticationPolicy.RequiresCredentials
+            ? "Defined-users authentication active. TFTP remains unauthenticated (protocol limitation)."
+            : "Accept-Any authentication is not access control. Every supplied username and password is accepted.";
+
+    public AuthenticationViewModel CreateAuthenticationViewModel()
+        => new(_authenticationPolicy, _authenticationSettingsStore);
 
     public ObservableCollection<FrontendViewModel> Frontends { get; }
 

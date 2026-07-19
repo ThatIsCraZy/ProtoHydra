@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
+using DataService.Core.Authentication;
 using DataService.Core.Events;
 using DataService.Protocols.Abstractions;
 using FxSsh;
@@ -15,6 +16,7 @@ namespace DataService.Protocols.Ssh;
 public sealed class SharedSshServer : IDisposable
 {
     private readonly ITransferEventBus _eventBus;
+    private readonly IAuthenticationPolicy _authenticationPolicy;
     private readonly SshHostKeyStore _hostKeyStore;
     private readonly SemaphoreSlim _lifecycleLock = new(1, 1);
     private readonly object _sessionLock = new();
@@ -31,9 +33,11 @@ public sealed class SharedSshServer : IDisposable
 
     public SharedSshServer(
         ITransferEventBus eventBus,
-        string hostKeyDirectory)
+        string hostKeyDirectory,
+        IAuthenticationPolicy? authenticationPolicy = null)
     {
         _eventBus = eventBus;
+        _authenticationPolicy = authenticationPolicy ?? new AcceptAnyAuthenticationPolicy();
         _hostKeyStore = new SshHostKeyStore(hostKeyDirectory);
     }
 
@@ -253,10 +257,14 @@ public sealed class SharedSshServer : IDisposable
         typeof(Session).GetField("_socket", BindingFlags.NonPublic | BindingFlags.Instance);
 
     private static IPAddress? GetClientAddress(CommandRequestedArgs args)
+        => GetClientAddress(args.AttachedUserauthArgs.Session);
+
+    private static IPAddress? GetClientAddress(Session? session)
     {
         try
         {
-            return SessionSocketField?.GetValue(args.AttachedUserauthArgs.Session) is Socket socket
+            return session is not null
+                && SessionSocketField?.GetValue(session) is Socket socket
                 && socket.RemoteEndPoint is IPEndPoint endpoint
                     ? endpoint.Address
                     : null;
@@ -265,6 +273,44 @@ public sealed class SharedSshServer : IDisposable
         {
             return null;
         }
+    }
+
+    private void HandleUserauth(object? sender, UserauthArgs args)
+    {
+        var decision = args.AuthMethod switch
+        {
+            "password" => _authenticationPolicy.AuthenticatePassword(args.Username, args.Password),
+            "publickey" => _authenticationPolicy.AuthenticatePublicKey(args.Username, args.Fingerprint),
+            _ => new AuthenticationDecision(!_authenticationPolicy.RequiresCredentials, args.Username)
+        };
+
+        args.Result = decision.Accepted;
+        if (!decision.Accepted)
+        {
+            var message = args.AuthMethod == "publickey"
+                ? "Public key authentication is not permitted; use password authentication."
+                : "Invalid username or password.";
+            PublishAuthenticationRejected(args.Username, message, GetClientAddress(args.Session));
+        }
+    }
+
+    private void PublishAuthenticationRejected(string? username, string message, IPAddress? sourceAddress)
+    {
+        // The shared listener serves SFTP and SCP; a failed userauth has no
+        // channel yet, so attribute it to whichever protocol is enabled.
+        var protocol = _sftpEnabled || !_scpEnabled ? ProtocolKind.Sftp : ProtocolKind.Scp;
+        Publish(
+            protocol,
+            TransferEventKind.AuthenticationAttempt,
+            username,
+            "ssh",
+            null,
+            null,
+            null,
+            null,
+            TransferResult.Rejected,
+            message,
+            sourceAddress);
     }
 
     private void HandleConnectionAccepted(object? sender, Session session)
@@ -276,7 +322,7 @@ public sealed class SharedSshServer : IDisposable
     {
         if (service is UserauthService authService)
         {
-            authService.Userauth += (_, args) => args.Result = true;
+            authService.Userauth += HandleUserauth;
             return;
         }
 
@@ -824,7 +870,9 @@ public sealed class SharedSshServer : IDisposable
             null,
             null,
             TransferResult.Success,
-            "Accepted by Accept-Any policy.",
+            _authenticationPolicy.RequiresCredentials
+                ? "Accepted by defined-users policy."
+                : "Accepted by Accept-Any policy.",
             sourceAddress);
 
     private void PublishCommand(

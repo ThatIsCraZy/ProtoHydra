@@ -19,6 +19,11 @@
         "resolved": "1.0.5",
         "contentHash": "WXNlWERj+0GN699AnMNsuJ7PfUAbU4xhOHP3nrNXLHqbOaBxybu25luSYywX1133NSlitA4YkSNmJuyPvea4sw=="
       },
+      "Konscious.Security.Cryptography.Blake2": {
+        "type": "Transitive",
+        "resolved": "1.1.1",
+        "contentHash": "odwOyzj/J/lHJZNwFWJGU/LRecBShupAJ2S8TQqZfhUe9niHzu/voBYK5wuVKsvSpzbfupKQYZguVyIk1sgOkQ=="
+      },
       "RegexMatcher": {
         "type": "Transitive",
         "resolved": "1.0.9",
@@ -35,18 +40,30 @@
         "contentHash": "JZJPMwSGfCqv6J1FGPU4PRihu20eSnlYQGfymrMsepLaL1sdAimy4MV+5wdlyJATK2gzccavEMzYBOisWddH9g=="
       },
       "dataservice.core": {
-        "type": "Project"
+        "type": "Project",
+        "dependencies": {
+          "Konscious.Security.Cryptography.Argon2": "[1.3.1, )"
+        }
       },
       "dataservice.infrastructure": {
         "type": "Project",
         "dependencies": {
-          "DataService.Core": "[1.0.0, )"
+          "DataService.Core": "[1.4.0, )"
         }
       },
       "dataservice.protocols.abstractions": {
         "type": "Project",
         "dependencies": {
-          "DataService.Core": "[1.0.0, )"
+          "DataService.Core": "[1.4.0, )"
+        }
+      },
+      "Konscious.Security.Cryptography.Argon2": {
+        "type": "CentralTransitive",
+        "requested": "[1.3.1, )",
+        "resolved": "1.3.1",
+        "contentHash": "T+OAGwzYYXftahpOxO7J4xA5K6urxwGnWQf3M+Jpi+76Azv/0T3M5SuN+h7/QvXuiqNw3ZEZ5QqVLI5ygDAylw==",
+        "dependencies": {
+          "Konscious.Security.Cryptography.Blake2": "1.1.1"
         }
       }
     }

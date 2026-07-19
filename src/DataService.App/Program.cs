@@ -35,7 +35,15 @@ internal static class Program
             .ConfigureServices(services =>
             {
                 services.AddSingleton(AppConfigurationDefaults.Create());
-                services.AddSingleton<IAuthenticationPolicy, AcceptAnyAuthenticationPolicy>();
+                services.AddSingleton<AuthenticationSettingsStore>();
+                services.AddSingleton(provider =>
+                {
+                    var store = provider.GetRequiredService<AuthenticationSettingsStore>();
+                    return new RuntimeAuthenticationPolicy(
+                        AuthenticationSettingsStore.CreatePolicy(store.Load()));
+                });
+                services.AddSingleton<IAuthenticationPolicy>(provider =>
+                    provider.GetRequiredService<RuntimeAuthenticationPolicy>());
                 services.AddSingleton<ITransferEventBus>(_ => new TransferEventBus());
                 services.AddSingleton<IoErrorLog>();
                 services.AddSingleton<ICertificateManager, CertificateManager>();
@@ -43,25 +51,29 @@ internal static class Program
                 services.AddSingleton<IFirewallTemporaryRuleService, WindowsTemporaryFirewallRuleService>();
                 services.AddSingleton<IProtocolAdapter>(serviceProvider => new HttpFileServerAdapter(
                     ProtocolKind.Http,
-                    serviceProvider.GetRequiredService<ITransferEventBus>()));
+                    serviceProvider.GetRequiredService<ITransferEventBus>(),
+                    serviceProvider.GetRequiredService<IAuthenticationPolicy>()));
                 services.AddSingleton<IProtocolAdapter>(serviceProvider =>
                 {
                     var configuration = serviceProvider.GetRequiredService<AppConfiguration>();
                     return new HttpFileServerAdapter(
                         ProtocolKind.Https,
                         serviceProvider.GetRequiredService<ITransferEventBus>(),
+                        serviceProvider.GetRequiredService<IAuthenticationPolicy>(),
                         serviceProvider.GetRequiredService<ICertificateManager>(),
                         new CertificateSettings(configuration.CertificateSettings.DirectoryPath));
                 });
                 services.AddSingleton<IProtocolAdapter>(serviceProvider => new FtpFileServerAdapter(
                     ProtocolKind.Ftp,
-                    serviceProvider.GetRequiredService<ITransferEventBus>()));
+                    serviceProvider.GetRequiredService<ITransferEventBus>(),
+                    serviceProvider.GetRequiredService<IAuthenticationPolicy>()));
                 services.AddSingleton<IProtocolAdapter>(serviceProvider =>
                 {
                     var configuration = serviceProvider.GetRequiredService<AppConfiguration>();
                     return new FtpFileServerAdapter(
                         ProtocolKind.Ftps,
                         serviceProvider.GetRequiredService<ITransferEventBus>(),
+                        serviceProvider.GetRequiredService<IAuthenticationPolicy>(),
                         serviceProvider.GetRequiredService<ICertificateManager>(),
                         new CertificateSettings(configuration.CertificateSettings.DirectoryPath));
                 });
@@ -72,7 +84,8 @@ internal static class Program
                     var configuration = serviceProvider.GetRequiredService<AppConfiguration>();
                     return new SharedSshServer(
                         serviceProvider.GetRequiredService<ITransferEventBus>(),
-                        configuration.SshHostKeySettings.DirectoryPath);
+                        configuration.SshHostKeySettings.DirectoryPath,
+                        serviceProvider.GetRequiredService<IAuthenticationPolicy>());
                 });
                 services.AddSingleton<IProtocolAdapter>(serviceProvider =>
                     new SftpFileServerAdapter(serviceProvider.GetRequiredService<SharedSshServer>()));

@@ -88,6 +88,11 @@
         "resolved": "1.0.5",
         "contentHash": "WXNlWERj+0GN699AnMNsuJ7PfUAbU4xhOHP3nrNXLHqbOaBxybu25luSYywX1133NSlitA4YkSNmJuyPvea4sw=="
       },
+      "Konscious.Security.Cryptography.Blake2": {
+        "type": "Transitive",
+        "resolved": "1.1.1",
+        "contentHash": "odwOyzj/J/lHJZNwFWJGU/LRecBShupAJ2S8TQqZfhUe9niHzu/voBYK5wuVKsvSpzbfupKQYZguVyIk1sgOkQ=="
+      },
       "Microsoft.AspNetCore.Http.Features": {
         "type": "Transitive",
         "resolved": "2.0.0",
@@ -447,26 +452,29 @@
         }
       },
       "dataservice.core": {
-        "type": "Project"
+        "type": "Project",
+        "dependencies": {
+          "Konscious.Security.Cryptography.Argon2": "[1.3.1, )"
+        }
       },
       "dataservice.infrastructure": {
         "type": "Project",
         "dependencies": {
-          "DataService.Core": "[1.0.0, )"
+          "DataService.Core": "[1.4.0, )"
         }
       },
       "dataservice.protocols.abstractions": {
         "type": "Project",
         "dependencies": {
-          "DataService.Core": "[1.0.0, )"
+          "DataService.Core": "[1.4.0, )"
         }
       },
       "dataservice.protocols.ftp": {
         "type": "Project",
         "dependencies": {
-          "DataService.Core": "[1.0.0, )",
-          "DataService.Infrastructure": "[1.0.0, )",
-          "DataService.Protocols.Abstractions": "[1.0.0, )",
+          "DataService.Core": "[1.4.0, )",
+          "DataService.Infrastructure": "[1.4.0, )",
+          "DataService.Protocols.Abstractions": "[1.4.0, )",
           "FubarDev.FtpServer": "[3.1.2, )",
           "FubarDev.FtpServer.FileSystem.DotNet": "[3.1.2, )",
           "Microsoft.Extensions.Hosting": "[10.0.9, )",
@@ -476,17 +484,17 @@
       "dataservice.protocols.http": {
         "type": "Project",
         "dependencies": {
-          "DataService.Core": "[1.0.0, )",
-          "DataService.Infrastructure": "[1.0.0, )",
-          "DataService.Protocols.Abstractions": "[1.0.0, )",
+          "DataService.Core": "[1.4.0, )",
+          "DataService.Infrastructure": "[1.4.0, )",
+          "DataService.Protocols.Abstractions": "[1.4.0, )",
           "Watson": "[7.0.15, )"
         }
       },
       "dataservice.protocols.ssh": {
         "type": "Project",
         "dependencies": {
-          "DataService.Core": "[1.0.0, )",
-          "DataService.Protocols.Abstractions": "[1.0.0, )",
+          "DataService.Core": "[1.4.0, )",
+          "DataService.Protocols.Abstractions": "[1.4.0, )",
           "FxSsh": "[1.3.0, )",
           "Microsoft.Extensions.Options": "[10.0.9, )",
           "SFTPServer": "[1.3.3, )"
@@ -495,8 +503,8 @@
       "dataservice.protocols.tftp": {
         "type": "Project",
         "dependencies": {
-          "DataService.Core": "[1.0.0, )",
-          "DataService.Protocols.Abstractions": "[1.0.0, )",
+          "DataService.Core": "[1.4.0, )",
+          "DataService.Protocols.Abstractions": "[1.4.0, )",
           "Tftp.Net": "[1.3.0, )"
         }
       },
@@ -525,6 +533,15 @@
         "requested": "[1.3.0, )",
         "resolved": "1.3.0",
         "contentHash": "jd6Xaz89kS+OHRrr4/vYb2KRYQJ3WGcTO/aK0TG3/7kgdB444VeRZevDnVpc3tfwx3mlmIQLwNKxYiuG6670Qg=="
+      },
+      "Konscious.Security.Cryptography.Argon2": {
+        "type": "CentralTransitive",
+        "requested": "[1.3.1, )",
+        "resolved": "1.3.1",
+        "contentHash": "T+OAGwzYYXftahpOxO7J4xA5K6urxwGnWQf3M+Jpi+76Azv/0T3M5SuN+h7/QvXuiqNw3ZEZ5QqVLI5ygDAylw==",
+        "dependencies": {
+          "Konscious.Security.Cryptography.Blake2": "1.1.1"
+        }
       },
       "Microsoft.Extensions.Hosting": {
         "type": "CentralTransitive",

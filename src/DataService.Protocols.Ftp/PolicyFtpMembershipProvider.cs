@@ -1,24 +1,25 @@
 using System.Security.Claims;
+using DataService.Core.Authentication;
 using DataService.Core.Events;
 using FubarDev.FtpServer.AccountManagement;
 
 namespace DataService.Protocols.Ftp;
 
-internal sealed class AcceptAnyFtpMembershipProvider : IMembershipProvider, IMembershipProviderAsync
+internal sealed class PolicyFtpMembershipProvider : IMembershipProvider, IMembershipProviderAsync
 {
     private readonly FtpInstrumentationContext _instrumentation;
+    private readonly IAuthenticationPolicy _authenticationPolicy;
 
-    public AcceptAnyFtpMembershipProvider(FtpInstrumentationContext instrumentation)
+    public PolicyFtpMembershipProvider(
+        FtpInstrumentationContext instrumentation,
+        IAuthenticationPolicy authenticationPolicy)
     {
         _instrumentation = instrumentation;
+        _authenticationPolicy = authenticationPolicy;
     }
 
     public Task<MemberValidationResult> ValidateUserAsync(string username, string password)
-    {
-        var result = CreateResult(username);
-        PublishAuthentication(result.FtpUser?.Identity?.Name ?? username);
-        return Task.FromResult(result);
-    }
+        => Task.FromResult(Validate(username, password));
 
     public Task<MemberValidationResult> ValidateUserAsync(
         string username,
@@ -26,9 +27,7 @@ internal sealed class AcceptAnyFtpMembershipProvider : IMembershipProvider, IMem
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var result = CreateResult(username);
-        PublishAuthentication(result.FtpUser?.Identity?.Name ?? username);
-        return Task.FromResult(result);
+        return Task.FromResult(Validate(username, password));
     }
 
     public Task LogOutAsync(ClaimsPrincipal principal, CancellationToken cancellationToken)
@@ -37,12 +36,29 @@ internal sealed class AcceptAnyFtpMembershipProvider : IMembershipProvider, IMem
         return Task.CompletedTask;
     }
 
+    private MemberValidationResult Validate(string username, string password)
+    {
+        var decision = _authenticationPolicy.AuthenticatePassword(username, password);
+        if (!decision.Accepted)
+        {
+            PublishAuthentication(username, TransferResult.Rejected, "Invalid username or password.");
+            return new MemberValidationResult(MemberValidationStatus.InvalidLogin);
+        }
+
+        var result = CreateResult(decision.Username ?? username);
+        PublishAuthentication(
+            result.FtpUser?.Identity?.Name ?? username,
+            TransferResult.Success,
+            _authenticationPolicy.RequiresCredentials ? "DefinedUsers" : "AcceptAny");
+        return result;
+    }
+
     private static MemberValidationResult CreateResult(string username)
     {
         var effectiveUsername = string.IsNullOrWhiteSpace(username) ? "anonymous" : username;
         var identity = new ClaimsIdentity(
             new[] { new Claim(ClaimTypes.Name, effectiveUsername) },
-            authenticationType: "AcceptAnyFtp");
+            authenticationType: "ProtoHydraFtp");
 
         return new MemberValidationResult(
             effectiveUsername.Equals("anonymous", StringComparison.OrdinalIgnoreCase)
@@ -51,7 +67,7 @@ internal sealed class AcceptAnyFtpMembershipProvider : IMembershipProvider, IMem
             new ClaimsPrincipal(identity));
     }
 
-    private void PublishAuthentication(string? username)
+    private void PublishAuthentication(string? username, TransferResult result, string detail)
         => _instrumentation.EventBus.TryPublish(new TransferEvent(
             DateTimeOffset.UtcNow,
             _instrumentation.Protocol,
@@ -63,7 +79,7 @@ internal sealed class AcceptAnyFtpMembershipProvider : IMembershipProvider, IMem
             null,
             null,
             null,
-            TransferResult.Success,
-            "AcceptAny",
+            result,
+            detail,
             Guid.NewGuid().ToString("N")));
 }

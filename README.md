@@ -163,6 +163,7 @@ ProtoHydra steht auf den Schultern hervorragender Open-Source-Arbeit. Unser aufr
 | [Tftp.Net](https://github.com/Callisto82/tftp.net) | TFTP-Server | Michael Baer (Callisto82) | MS-PL |
 | [FxSsh](https://github.com/Aimeast/FxSsh) | SSH-Transport | Aimeast | MIT |
 | [SFTPServer](https://github.com/KeenSystems/SFTPServer) | SFTP-Subsystem | KeenSystems | MIT |
+| [Konscious.Security.Cryptography](https://github.com/kmaragon/Konscious.Security.Cryptography) (`…Argon2`, `…Blake2`) | Argon2id-Passwort-Hashing | Keef Aragon | MIT |
 
 **Werkzeuge in der Test-Suite:** [SSH.NET](https://github.com/sshnet/SSH.NET) (MIT) und [FluentFTP](https://github.com/robinrodricks/FluentFTP) (MIT) als Smoke-Test-Clients.
 
@@ -346,6 +347,7 @@ ProtoHydra stands on the shoulders of excellent open-source work. Our sincere th
 | [Tftp.Net](https://github.com/Callisto82/tftp.net) | TFTP server | Michael Baer (Callisto82) | MS-PL |
 | [FxSsh](https://github.com/Aimeast/FxSsh) | SSH transport | Aimeast | MIT |
 | [SFTPServer](https://github.com/KeenSystems/SFTPServer) | SFTP subsystem | KeenSystems | MIT |
+| [Konscious.Security.Cryptography](https://github.com/kmaragon/Konscious.Security.Cryptography) (`…Argon2`, `…Blake2`) | Argon2id password hashing | Keef Aragon | MIT |
 
 **Tools used in the test suite:** [SSH.NET](https://github.com/sshnet/SSH.NET) (MIT) and [FluentFTP](https://github.com/robinrodricks/FluentFTP) (MIT) as smoke-test clients.
 

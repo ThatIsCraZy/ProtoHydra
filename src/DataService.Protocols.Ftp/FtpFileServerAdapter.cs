@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
+using DataService.Core.Authentication;
 using DataService.Core.Events;
 using DataService.Infrastructure.Certificates;
 using DataService.Protocols.Abstractions;
@@ -18,20 +19,22 @@ namespace DataService.Protocols.Ftp;
 public sealed class FtpFileServerAdapter : IProtocolAdapter
 {
     private readonly ITransferEventBus _eventBus;
+    private readonly IAuthenticationPolicy _authenticationPolicy;
     private readonly ICertificateManager? _certificateManager;
     private readonly CertificateSettings? _certificateSettings;
     private readonly bool _useTls;
     private IHost? _host;
     private IFtpServerHost? _ftpServerHost;
 
-    public FtpFileServerAdapter(ITransferEventBus eventBus)
-        : this(ProtocolKind.Ftp, eventBus)
+    public FtpFileServerAdapter(ITransferEventBus eventBus, IAuthenticationPolicy? authenticationPolicy = null)
+        : this(ProtocolKind.Ftp, eventBus, authenticationPolicy)
     {
     }
 
     public FtpFileServerAdapter(
         ProtocolKind protocol,
         ITransferEventBus eventBus,
+        IAuthenticationPolicy? authenticationPolicy = null,
         ICertificateManager? certificateManager = null,
         CertificateSettings? certificateSettings = null)
     {
@@ -42,6 +45,7 @@ public sealed class FtpFileServerAdapter : IProtocolAdapter
 
         Protocol = protocol;
         _eventBus = eventBus;
+        _authenticationPolicy = authenticationPolicy ?? new AcceptAnyAuthenticationPolicy();
         _certificateManager = certificateManager;
         _certificateSettings = certificateSettings;
         _useTls = protocol == ProtocolKind.Ftps;
@@ -126,11 +130,12 @@ public sealed class FtpFileServerAdapter : IProtocolAdapter
                 .ConfigureServices(services =>
                 {
                     services.AddSingleton(new FtpInstrumentationContext(_eventBus, Protocol, rootPath));
-                    services.AddSingleton<AcceptAnyFtpMembershipProvider>();
+                    services.AddSingleton(_authenticationPolicy);
+                    services.AddSingleton<PolicyFtpMembershipProvider>();
                     services.AddSingleton<IMembershipProvider>(provider =>
-                        provider.GetRequiredService<AcceptAnyFtpMembershipProvider>());
+                        provider.GetRequiredService<PolicyFtpMembershipProvider>());
                     services.AddSingleton<IMembershipProviderAsync>(provider =>
-                        provider.GetRequiredService<AcceptAnyFtpMembershipProvider>());
+                        provider.GetRequiredService<PolicyFtpMembershipProvider>());
                     services.Configure<FtpServerOptions>(options =>
                     {
                         options.ServerAddress = configuration.BindAddress;
