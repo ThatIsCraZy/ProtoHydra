@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using DataService.Core.Authentication;
 using DataService.Core.Diagnostics;
 using DataService.Core.Events;
 using DataService.Core.FileSystem;
@@ -19,6 +20,7 @@ namespace DataService.Protocols.Http;
 public sealed class HttpFileServerAdapter : IProtocolAdapter
 {
     private readonly ITransferEventBus _eventBus;
+    private readonly IAuthenticationPolicy _authenticationPolicy;
     private readonly ICertificateManager? _certificateManager;
     private readonly CertificateSettings? _certificateSettings;
     private readonly bool _useTls;
@@ -29,6 +31,7 @@ public sealed class HttpFileServerAdapter : IProtocolAdapter
     public HttpFileServerAdapter(
         ProtocolKind protocol,
         ITransferEventBus eventBus,
+        IAuthenticationPolicy? authenticationPolicy = null,
         ICertificateManager? certificateManager = null,
         CertificateSettings? certificateSettings = null)
     {
@@ -39,6 +42,7 @@ public sealed class HttpFileServerAdapter : IProtocolAdapter
 
         Protocol = protocol;
         _eventBus = eventBus;
+        _authenticationPolicy = authenticationPolicy ?? new AcceptAnyAuthenticationPolicy();
         _certificateManager = certificateManager;
         _certificateSettings = certificateSettings;
         _useTls = protocol == ProtocolKind.Https;
@@ -46,7 +50,7 @@ public sealed class HttpFileServerAdapter : IProtocolAdapter
             SupportsDownload: true,
             SupportsUpload: false,
             SupportsListing: true,
-            SupportsAuthentication: false,
+            SupportsAuthentication: true,
             UsesEncryption: _useTls);
     }
 
@@ -211,6 +215,16 @@ public sealed class HttpFileServerAdapter : IProtocolAdapter
 
         try
         {
+            if (_authenticationPolicy.RequiresCredentials && !IsAuthorized(context))
+            {
+                context.Response.StatusCode = 401;
+                context.Response.Headers.Add("WWW-Authenticate", "Basic realm=\"ProtoHydra\", charset=\"UTF-8\"");
+                result = TransferResult.Rejected;
+                failureMessage = "Authentication required.";
+                await context.Response.Send("Unauthorized", context.Token);
+                return;
+            }
+
             if (method is not (WHttpMethod.GET or WHttpMethod.HEAD))
             {
                 context.Response.StatusCode = 405;
@@ -465,6 +479,14 @@ public sealed class HttpFileServerAdapter : IProtocolAdapter
 
     private static string? TryGetBasicUsername(AuthorizationDetails authorization)
         => string.IsNullOrWhiteSpace(authorization.Username) ? null : authorization.Username;
+
+    private bool IsAuthorized(HttpContextBase context)
+    {
+        var authorization = context.Request.Authorization;
+        return _authenticationPolicy
+            .AuthenticatePassword(authorization.Username, authorization.Password)
+            .Accepted;
+    }
 
     private void Publish(
         TransferEventKind kind,

@@ -36,6 +36,15 @@
                        Foreground="{DynamicResource AppWarningTextBrush}"
                        FontSize="12"
                        TextWrapping="Wrap" />
+            <Button Classes="link"
+                    Click="ConfigureAuthentication_OnClick"
+                    HorizontalAlignment="Left"
+                    ToolTip.Tip="Switch between Accept-Any and defined users with passwords.">
+              <TextBlock Text="Configure Authentication"
+                         TextDecorations="Underline"
+                         FontSize="11"
+                         Foreground="#7CB5FF" />
+            </Button>
           </StackPanel>
         </Grid>
 

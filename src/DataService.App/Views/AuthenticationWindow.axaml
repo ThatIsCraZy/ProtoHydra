@@ -1,0 +1,85 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:DataService.App.ViewModels"
+        x:Class="DataService.App.Views.AuthenticationWindow"
+        x:DataType="vm:AuthenticationViewModel"
+        Width="640"
+        Height="620"
+        MinWidth="520"
+        MinHeight="480"
+        UseLayoutRounding="True"
+        Background="{DynamicResource AppBackgroundBrush}"
+        Title="Authentication — ProtoHydra"
+        WindowStartupLocation="CenterOwner">
+  <Grid RowDefinitions="Auto,Auto,*,Auto,Auto" Margin="14" RowSpacing="12">
+
+    <StackPanel Spacing="4">
+      <TextBlock Text="Authentication" FontSize="15" FontWeight="SemiBold" />
+      <TextBlock Classes="caption"
+                 TextWrapping="Wrap"
+                 Text="Applies to FTP/FTPS, SFTP, SCP, HTTP and HTTPS. TFTP has no authentication in the protocol and always remains open. Passwords are stored as Argon2id hashes only." />
+    </StackPanel>
+
+    <Border Grid.Row="1" Classes="card" Padding="14">
+      <StackPanel Spacing="8">
+        <RadioButton GroupName="AuthMode"
+                     IsChecked="{Binding !IsDefinedUsersMode}"
+                     Content="Accept any credentials (no access control)" />
+        <RadioButton GroupName="AuthMode"
+                     IsChecked="{Binding IsDefinedUsersMode}"
+                     Content="Defined users only" />
+        <TextBlock Classes="caption"
+                   TextWrapping="Wrap"
+                   IsVisible="{Binding IsDefinedUsersMode}"
+                   Text="Note: over plain HTTP and FTP the credentials travel unencrypted; prefer HTTPS, FTPS or SFTP when authentication matters. SSH public-key authentication is rejected so clients fall back to password login." />
+      </StackPanel>
+    </Border>
+
+    <Border Grid.Row="2" Classes="card" Padding="14" IsEnabled="{Binding IsDefinedUsersMode}">
+      <Grid RowDefinitions="Auto,*,Auto" RowSpacing="10">
+        <TextBlock Text="Users" Classes="sectionTitle" />
+
+        <Grid Grid.Row="1" ColumnDefinitions="*,Auto" ColumnSpacing="10">
+          <ListBox ItemsSource="{Binding Usernames}"
+                   SelectedItem="{Binding SelectedUser}" />
+          <Button Grid.Column="1"
+                  VerticalAlignment="Top"
+                  Content="Remove"
+                  Command="{Binding RemoveUserCommand}" />
+        </Grid>
+
+        <Grid Grid.Row="2" ColumnDefinitions="*,*,*,Auto" ColumnSpacing="8">
+          <StackPanel Spacing="2">
+            <TextBlock Text="Username" Classes="caption" />
+            <TextBox Text="{Binding NewUsername}" Watermark="user" />
+          </StackPanel>
+          <StackPanel Grid.Column="1" Spacing="2">
+            <TextBlock Text="Password" Classes="caption" />
+            <TextBox Text="{Binding NewPassword}" PasswordChar="●" Watermark="password" />
+          </StackPanel>
+          <StackPanel Grid.Column="2" Spacing="2">
+            <TextBlock Text="Confirm" Classes="caption" />
+            <TextBox Text="{Binding NewPasswordConfirm}" PasswordChar="●" Watermark="repeat" />
+          </StackPanel>
+          <Button Grid.Column="3"
+                  VerticalAlignment="Bottom"
+                  Content="Add / Set"
+                  ToolTip.Tip="Adds a new user, or sets a new password when the username already exists."
+                  Command="{Binding AddUserCommand}" />
+        </Grid>
+      </Grid>
+    </Border>
+
+    <TextBlock Grid.Row="3"
+               Classes="caption"
+               TextWrapping="Wrap"
+               Text="{Binding StatusText}" />
+
+    <StackPanel Grid.Row="4" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+      <Button Content="Close" Click="Close_OnClick" />
+      <Button Content="Apply"
+              Classes="primary"
+              Command="{Binding ApplyCommand}" />
+    </StackPanel>
+  </Grid>
+</Window>

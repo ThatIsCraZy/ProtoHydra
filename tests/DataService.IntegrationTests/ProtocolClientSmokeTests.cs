@@ -55,8 +55,8 @@ public sealed class ProtocolClientSmokeTests
         var adapter = new HttpFileServerAdapter(
             ProtocolKind.Https,
             new TransferEventBus(),
-            new CertificateManager(),
-            new CertificateSettings(certificateDirectory));
+            certificateManager: new CertificateManager(),
+            certificateSettings: new CertificateSettings(certificateDirectory));
 
         await adapter.StartAsync(new ProtocolConfiguration("127.0.0.1", port, rootPath, Enabled: true), CancellationToken.None);
         try
@@ -146,8 +146,8 @@ public sealed class ProtocolClientSmokeTests
         var adapter = new FtpFileServerAdapter(
             ProtocolKind.Ftps,
             eventBus,
-            new CertificateManager(),
-            new CertificateSettings(certificateDirectory));
+            certificateManager: new CertificateManager(),
+            certificateSettings: new CertificateSettings(certificateDirectory));
         var config = new FtpConfig
         {
             EncryptionMode = FtpEncryptionMode.Explicit,
