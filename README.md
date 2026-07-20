@@ -32,13 +32,13 @@ Gedacht ist das Werkzeug für den Admin-Alltag: Netzwerkgeräte flashen, Applian
 
 | Protokoll | Download | Upload | Verzeichnislisting | Authentifizierung | Verschlüsselung | Standard-Port |
 |---|:---:|:---:|:---:|---|---|---:|
-| **TFTP** | ✅ | ✅ | ❌ | keine | ❌ | `69/UDP` |
-| **FTP** | ✅ | ✅ | ✅ | Accept-Any | ❌ | `21` |
-| **FTPS** | ✅ | ✅ | ✅ | Accept-Any | TLS | `990` |
-| **SFTP** | ✅ | ✅ | ✅ | Accept-Any | SSH | `22` |
-| **SCP** | ✅ | ✅ | ❌ | Accept-Any | SSH | `22` (geteilt) |
-| **HTTP** | ✅ | ❌ | HTML-Listing | optional Basic | ❌ | `80` |
-| **HTTPS** | ✅ | ❌ | HTML-Listing | optional Basic | TLS | `443` |
+| **TFTP** | ✅ | ✅ | ❌ | keine (protokollbedingt) | ❌ | `69/UDP` |
+| **FTP** | ✅ | ✅ | ✅ | Accept-Any / definierte User | ❌ | `21` |
+| **FTPS** | ✅ | ✅ | ✅ | Accept-Any / definierte User | TLS | `990` |
+| **SFTP** | ✅ | ✅ | ✅ | Accept-Any / definierte User | SSH | `22` |
+| **SCP** | ✅ | ✅ | ❌ | Accept-Any / definierte User | SSH | `22` (geteilt) |
+| **HTTP** | ✅ | ❌ | HTML-Listing | Accept-Any / Basic (definierte User) | ❌ | `80` |
+| **HTTPS** | ✅ | ❌ | HTML-Listing | Accept-Any / Basic (definierte User) | TLS | `443` |
 
 > SFTP und SCP teilen sich denselben SSH-Listener (Port und Bind-Adresse müssen identisch sein), lassen sich aber unabhängig aktivieren. Der SCP-Dienst versteht sowohl klassisches `scp` (Exec-Modus) als auch den Shell-basierten SCP-Modus von WinSCP.
 
@@ -108,7 +108,9 @@ FTP/FTPS mit FileZilla, WinSCP oder curl (Host, Port `21`/`990`, beliebiger User
 
 > **⚠️ ProtoHydra ist kein gehärteter Produktivserver.**
 
-Die Anwendung nutzt bewusst eine **Accept-Any-Authentifizierung**: Jeder Benutzername und jedes Passwort wird akzeptiert, es findet **keine Zugriffskontrolle** statt. Das ist für Wartungs- und Bootstrapping-Szenarien gewollt (Geräte liefern oft feste oder leere Credentials), macht das Tool aber **ungeeignet für den dauerhaften oder öffentlich erreichbaren Betrieb**.
+Die Anwendung nutzt standardmäßig eine bewusst offene **Accept-Any-Authentifizierung**: Jeder Benutzername und jedes Passwort wird akzeptiert, es findet **keine Zugriffskontrolle** statt. Das ist für Wartungs- und Bootstrapping-Szenarien gewollt (Geräte liefern oft feste oder leere Credentials), macht das Tool aber **ungeeignet für den dauerhaften oder öffentlich erreichbaren Betrieb**.
+
+Optional lässt sich über **Configure Authentication** (im Kopfbereich) auf **definierte Benutzer** umschalten: mehrere User mit Passwörtern, gespeichert ausschließlich als **Argon2id-Hashes** — nie im Klartext. Die Umschaltung greift sofort für FTP/FTPS, SFTP, SCP, HTTP und HTTPS (Basic Auth); SSH-Public-Key-Anmeldung wird dabei abgelehnt, Clients fallen auf Passwort zurück. **TFTP bleibt protokollbedingt immer ohne Authentifizierung.** Hinweis: Über unverschlüsseltes HTTP/FTP reisen Credentials im Klartext — für authentifizierte Zugriffe HTTPS, FTPS oder SFTP bevorzugen.
 
 Empfehlungen: Nur im **Wartungs-/Geräte-Netz** oder hinter einer Firewall betreiben, nie am offenen Internet. Nur so lange laufen lassen, wie der Transfer dauert. Als Root nur freigeben, was das Gerät wirklich braucht.
 
@@ -216,13 +218,13 @@ The tool is built for everyday admin work: flashing network gear, bootstrapping 
 
 | Protocol | Download | Upload | Directory listing | Authentication | Encryption | Default port |
 |---|:---:|:---:|:---:|---|---|---:|
-| **TFTP** | ✅ | ✅ | ❌ | none | ❌ | `69/UDP` |
-| **FTP** | ✅ | ✅ | ✅ | Accept-Any | ❌ | `21` |
-| **FTPS** | ✅ | ✅ | ✅ | Accept-Any | TLS | `990` |
-| **SFTP** | ✅ | ✅ | ✅ | Accept-Any | SSH | `22` |
-| **SCP** | ✅ | ✅ | ❌ | Accept-Any | SSH | `22` (shared) |
-| **HTTP** | ✅ | ❌ | HTML listing | optional Basic | ❌ | `80` |
-| **HTTPS** | ✅ | ❌ | HTML listing | optional Basic | TLS | `443` |
+| **TFTP** | ✅ | ✅ | ❌ | none (protocol limitation) | ❌ | `69/UDP` |
+| **FTP** | ✅ | ✅ | ✅ | Accept-Any / defined users | ❌ | `21` |
+| **FTPS** | ✅ | ✅ | ✅ | Accept-Any / defined users | TLS | `990` |
+| **SFTP** | ✅ | ✅ | ✅ | Accept-Any / defined users | SSH | `22` |
+| **SCP** | ✅ | ✅ | ❌ | Accept-Any / defined users | SSH | `22` (shared) |
+| **HTTP** | ✅ | ❌ | HTML listing | Accept-Any / Basic (defined users) | ❌ | `80` |
+| **HTTPS** | ✅ | ❌ | HTML listing | Accept-Any / Basic (defined users) | TLS | `443` |
 
 > SFTP and SCP share the same SSH listener (port and bind address must be identical) but can be enabled independently. The SCP service understands both classic `scp` (exec mode) and WinSCP's shell-based SCP mode.
 
@@ -292,7 +294,9 @@ FTP/FTPS with FileZilla, WinSCP or curl (host, port `21`/`990`, any user/pass). 
 
 > **⚠️ ProtoHydra is not a hardened production server.**
 
-The application deliberately uses **Accept-Any authentication**: any username and password is accepted, and there is **no access control**. This is intentional for maintenance and bootstrapping scenarios (devices often supply fixed or empty credentials) but makes the tool **unsuitable for permanent or publicly reachable operation**.
+By default the application uses a deliberately open **Accept-Any authentication**: any username and password is accepted, and there is **no access control**. This is intentional for maintenance and bootstrapping scenarios (devices often supply fixed or empty credentials) but makes the tool **unsuitable for permanent or publicly reachable operation**.
+
+Optionally, **Configure Authentication** (in the header) switches to **defined users**: multiple users with passwords, stored exclusively as **Argon2id hashes** — never in plaintext. The switch takes effect immediately for FTP/FTPS, SFTP, SCP, HTTP and HTTPS (Basic auth); SSH public-key login is rejected in this mode so clients fall back to password. **TFTP always remains unauthenticated (protocol limitation).** Note: over unencrypted HTTP/FTP credentials travel in plaintext — prefer HTTPS, FTPS or SFTP for authenticated access.
 
 Recommendations: run it only in a **maintenance/device network** or behind a firewall, never on the open internet. Keep it running only for the duration of the transfer. Expose only what the device actually needs as the root.
 
