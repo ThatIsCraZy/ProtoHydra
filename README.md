@@ -116,7 +116,7 @@ Empfehlungen: Nur im **Wartungs-/Geräte-Netz** oder hinter einer Firewall betre
 
 Eingebaute Schutzmechanismen: mehrstufige Pfadvalidierung gegen Ausbruch aus dem Root; Blockade von Symlinks/Reparse-Points aus dem Root; Passwörter/Credentials werden **nie** geloggt; temporäre Upload-Dateien werden bei Abbruch bereinigt.
 
-**Sicherheit melden & Code-Signing:** Sicherheitsprobleme bitte vertraulich über den „Report a vulnerability"-Button im Security-Tab melden. Release-Binaries werden reproduzierbar per GitHub Actions gebaut und über das kostenlose Open-Source-Programm der SignPath Foundation signiert. Details: [SECURITY.md](SECURITY.md).
+**Sicherheit melden:** Sicherheitsprobleme bitte vertraulich über den „Report a vulnerability"-Button im Security-Tab melden. Details: [SECURITY.md](SECURITY.md).
 
 ### Datenablage und Konfiguration
 
@@ -302,7 +302,7 @@ Recommendations: run it only in a **maintenance/device network** or behind a fir
 
 Built-in safeguards: multi-stage path validation against root escape; blocking of symlinks/reparse points leaving the root; passwords/credentials are **never** logged; temporary upload files are cleaned up on abort.
 
-**Reporting security issues & code signing:** Please report security issues privately via the "Report a vulnerability" button on the Security tab. Release binaries are built reproducibly via GitHub Actions and code signed through the SignPath Foundation free open-source program. See [SECURITY.md](SECURITY.md) for details.
+**Reporting security issues:** Please report security issues privately via the "Report a vulnerability" button on the Security tab. See [SECURITY.md](SECURITY.md) for details.
 
 ### Data storage and configuration
 
