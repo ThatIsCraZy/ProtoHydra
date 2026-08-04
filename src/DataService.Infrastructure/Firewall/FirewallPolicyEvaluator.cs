@@ -204,10 +204,22 @@ public static class FirewallPolicyEvaluator
         return rules.Any(rule => rule.Enabled
             && rule.IsAllow
             && AppliesToProfile(rule, profile.Profile)
+            && !IsScopedToOtherPrincipal(rule)
             && MatchesApplication(rule.ApplicationName, executablePath)
             && rule.Protocol == FirewallRuleInfo.ProtocolAny
             && IsAnyPort(rule.LocalPorts));
     }
+
+    /// <summary>
+    /// True when a rule is bound to an AppContainer package or to an owning user SID.
+    /// Windows creates such rules for Store/packaged apps (for example
+    /// "MSTeams_&lt;pkg&gt;&lt;userSid&gt;-In-Allow-ServerCapability"): no ApplicationName,
+    /// protocol Any and no port restriction. Read as generic port rules they would report
+    /// every listener port as open although nothing allows this executable.
+    /// </summary>
+    private static bool IsScopedToOtherPrincipal(FirewallRuleInfo rule)
+        => !string.IsNullOrWhiteSpace(rule.LocalAppPackageId)
+            || !string.IsNullOrWhiteSpace(rule.LocalUserOwner);
 
     private static IReadOnlyList<string> BuildWarnings(FirewallPolicyState policy)
     {
@@ -258,6 +270,12 @@ public static class FirewallPolicyEvaluator
 
         // Service-scoped rules never apply to this desktop process.
         if (!string.IsNullOrWhiteSpace(rule.ServiceName) && rule.ServiceName.Trim() != "*")
+        {
+            return false;
+        }
+
+        // Neither do rules bound to another principal (see IsScopedToOtherPrincipal).
+        if (IsScopedToOtherPrincipal(rule))
         {
             return false;
         }

@@ -115,7 +115,9 @@ public sealed class WindowsFirewallStatusService : IFirewallStatusService
                     rule.ApplicationName as string,
                     rule.ServiceName as string,
                     (int)rule.Profiles,
-                    rule.RemoteAddresses as string));
+                    rule.RemoteAddresses as string,
+                    ReadLocalAppPackageId(rule),
+                    ReadLocalUserOwner(rule)));
             }
             catch (Exception)
             {
@@ -124,5 +126,31 @@ public sealed class WindowsFirewallStatusService : IFirewallStatusService
         }
 
         return rules;
+    }
+
+    // INetFwRule3 only exists on Windows 8+ and individual rule objects can refuse the
+    // accessor; a miss must leave the rule usable rather than drop it.
+    private static string? ReadLocalAppPackageId(dynamic rule)
+    {
+        try
+        {
+            return rule.LocalAppPackageId as string;
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+    }
+
+    private static string? ReadLocalUserOwner(dynamic rule)
+    {
+        try
+        {
+            return rule.LocalUserOwner as string;
+        }
+        catch (Exception)
+        {
+            return null;
+        }
     }
 }

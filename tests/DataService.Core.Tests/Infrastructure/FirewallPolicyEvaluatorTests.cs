@@ -21,8 +21,21 @@ public sealed class FirewallPolicyEvaluatorTests
         bool enabled = true,
         bool isAllow = true,
         string? remoteAddresses = null,
-        string? serviceName = null)
-        => new("test-rule", enabled, isAllow, protocol, localPorts, applicationName, serviceName, profiles, remoteAddresses);
+        string? serviceName = null,
+        string? localAppPackageId = null,
+        string? localUserOwner = null)
+        => new(
+            "test-rule",
+            enabled,
+            isAllow,
+            protocol,
+            localPorts,
+            applicationName,
+            serviceName,
+            profiles,
+            remoteAddresses,
+            localAppPackageId,
+            localUserOwner);
 
     private static FirewallProbeTarget Target(
         int port = 8080,
@@ -199,6 +212,75 @@ public sealed class FirewallPolicyEvaluatorTests
         var snapshot = FirewallPolicyEvaluator.Evaluate(ExecutablePath, [Target()], policy);
 
         Assert.Equal(FirewallStatusLevel.Red, snapshot.Level);
+    }
+
+    // Regression: on a stock Windows 11 machine the Store/AppContainer rules Windows creates
+    // for packaged apps ("MSTeams_<pkg><userSid>-In-Allow-ServerCapability", Microsoft Store,
+    // Game Bar, ChatGPT, ...) carry no ApplicationName, no ServiceName, protocol Any and no
+    // port restriction. Treated as generic port rules they matched every probe, so the UI
+    // reported "Firewall allows all checked ports" (green) although no rule allowed this
+    // executable at all and the default inbound action was Block.
+    [Theory]
+    [InlineData("S-1-15-2-1239072475-3687740317-1842194888-1639165560-3849322199-3011300420-1", null)]
+    [InlineData(null, "S-1-12-1-2289391400-1092131886-1257453956-1094209902")]
+    [InlineData(null, "S-1-5-18")]
+    public void Evaluate_PrincipalScopedWildcardRule_DoesNotOpenPortsForThisProcess(
+        string? localAppPackageId,
+        string? localUserOwner)
+    {
+        var policy = Policy(
+            [Profile(FirewallProfile.Public)],
+            rules: AllowRule(
+                profiles: (int)FirewallProfile.Public,
+                applicationName: null,
+                localAppPackageId: localAppPackageId,
+                localUserOwner: localUserOwner));
+
+        var snapshot = FirewallPolicyEvaluator.Evaluate(ExecutablePath, [Target()], policy);
+
+        Assert.Equal(FirewallStatusLevel.Red, snapshot.Level);
+        Assert.False(snapshot.Ports[0].IsAllowed);
+        Assert.False(snapshot.IsApplicationAllowed);
+    }
+
+    [Fact]
+    public void Evaluate_PrincipalScopedBlockRule_DoesNotBlockThisProcess()
+    {
+        var policy = Policy(
+            [Profile(FirewallProfile.Private)],
+            rules:
+            [
+                AllowRule(profiles: (int)FirewallProfile.Private),
+                AllowRule(
+                    profiles: (int)FirewallProfile.Private,
+                    applicationName: null,
+                    isAllow: false,
+                    localUserOwner: "S-1-5-18")
+            ]);
+
+        var snapshot = FirewallPolicyEvaluator.Evaluate(ExecutablePath, [Target()], policy);
+
+        Assert.Equal(FirewallStatusLevel.Green, snapshot.Level);
+        Assert.True(snapshot.Ports[0].IsAllowed);
+    }
+
+    [Fact]
+    public void Evaluate_GenuinelyGenericPortRule_StillOpensPort()
+    {
+        // Guard against over-correcting: an admin-created "any program on TCP 8080"
+        // rule has no principal scope and must keep counting as open.
+        var policy = Policy(
+            [Profile(FirewallProfile.Public)],
+            rules: AllowRule(
+                profiles: (int)FirewallProfile.Public,
+                protocol: FirewallRuleInfo.ProtocolTcp,
+                localPorts: "8080",
+                applicationName: null));
+
+        var snapshot = FirewallPolicyEvaluator.Evaluate(ExecutablePath, [Target(port: 8080)], policy);
+
+        Assert.Equal(FirewallStatusLevel.Green, snapshot.Level);
+        Assert.True(snapshot.Ports[0].IsAllowed);
     }
 
     [Fact]
