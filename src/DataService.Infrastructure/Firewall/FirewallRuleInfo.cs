@@ -14,7 +14,10 @@ public sealed record FirewallRuleInfo(
     // owning user SID only applies to that principal — never to this Win32 process,
     // even though such rules carry no ApplicationName and match any port.
     string? LocalAppPackageId = null,
-    string? LocalUserOwner = null)
+    string? LocalUserOwner = null,
+    // Comma-separated list of "RemoteAccess", "Wireless" and/or "Lan", or "All".
+    // Anything other than "All" means the rule only covers some interface types.
+    string? InterfaceTypes = null)
 {
     public const int ProtocolTcp = 6;
     public const int ProtocolUdp = 17;

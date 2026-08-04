@@ -177,10 +177,12 @@ public static class FirewallPolicyEvaluator
             return (false, false);
         }
 
-        var allow = applicable.FirstOrDefault(rule => rule.IsAllow);
-        if (allow is not null)
+        // Prefer an unrestricted allow rule; only report "restricted" when every
+        // matching rule narrows the traffic it covers.
+        var allows = applicable.Where(rule => rule.IsAllow).ToArray();
+        if (allows.Length > 0)
         {
-            return (true, IsAddressScoped(allow.RemoteAddresses));
+            return (true, allows.All(IsScopeRestricted));
         }
 
         return (profile.DefaultInboundAllow, false);
@@ -338,9 +340,27 @@ public static class FirewallPolicyEvaluator
         return false;
     }
 
+    /// <summary>
+    /// True when an allow rule only covers part of the traffic that could reach the
+    /// listener, so the port must be reported as restricted rather than fully open.
+    /// </summary>
+    private static bool IsScopeRestricted(FirewallRuleInfo rule)
+        => IsAddressScoped(rule.RemoteAddresses) || IsInterfaceScoped(rule.InterfaceTypes);
+
     private static bool IsAddressScoped(string? remoteAddresses)
         => !string.IsNullOrWhiteSpace(remoteAddresses)
             && remoteAddresses.Trim() is not ("*" or "any");
+
+    /// <summary>
+    /// A rule limited to specific interface types (for example only "Wireless" or only the
+    /// VPN-style "RemoteAccess") does not open the port on every NIC. An empty value means
+    /// the API reported no restriction.
+    /// </summary>
+    private static bool IsInterfaceScoped(string? interfaceTypes)
+        => !string.IsNullOrWhiteSpace(interfaceTypes)
+            && !interfaceTypes
+                .Split(',')
+                .Any(type => type.Trim().Equals("All", StringComparison.OrdinalIgnoreCase));
 
     private static bool MatchesApplication(string? ruleApplication, string executablePath)
     {

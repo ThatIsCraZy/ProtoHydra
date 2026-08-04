@@ -14,6 +14,25 @@ public sealed partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        DataContextChanged += (_, _) =>
+        {
+            if (DataContext is MainViewModel viewModel)
+            {
+                viewModel.ConfirmRootPathRestartAsync = ConfirmRootPathRestartAsync;
+            }
+        };
+    }
+
+    private async Task<bool> ConfirmRootPathRestartAsync(IReadOnlyList<string> runningProtocols)
+    {
+        var protocols = string.Join(", ", runningProtocols);
+        var dialog = new ConfirmationWindow(
+            "Change root folder — ProtoHydra",
+            "Changing the root folder restarts running listeners.",
+            $"{protocols} {(runningProtocols.Count == 1 ? "is" : "are")} currently running and will be stopped and "
+                + "started again so the new root folder takes effect. Transfers in progress will be interrupted.",
+            "Restart and apply");
+        return await dialog.ShowDialog<bool>(this);
     }
 
     private void ViewLicenses_OnClick(object? sender, RoutedEventArgs e)

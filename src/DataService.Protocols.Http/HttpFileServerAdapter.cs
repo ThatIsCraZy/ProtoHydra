@@ -27,6 +27,7 @@ public sealed class HttpFileServerAdapter : IProtocolAdapter
     private Webserver? _server;
     private CancellationTokenSource? _serverTokenSource;
     private Task? _serverTask;
+    private IPEndPoint? _boundEndpoint;
 
     public HttpFileServerAdapter(
         ProtocolKind protocol,
@@ -134,6 +135,9 @@ public sealed class HttpFileServerAdapter : IProtocolAdapter
             _serverTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             _serverTask = Task.Run(() => _server.Start(_serverTokenSource.Token), CancellationToken.None);
             await WaitUntilListeningAsync(_server, _serverTask, cancellationToken);
+            _boundEndpoint = IPAddress.TryParse(configuration.BindAddress, out var boundAddress)
+                ? new IPEndPoint(boundAddress, configuration.Port)
+                : null;
             State = ProtocolRuntimeState.Running;
             Publish(TransferEventKind.ListenerStarted, configuration, TransferResult.Success);
         }
@@ -155,7 +159,11 @@ public sealed class HttpFileServerAdapter : IProtocolAdapter
         }
 
         State = ProtocolRuntimeState.Stopping;
-        _serverTokenSource?.Cancel();
+
+        // Order matters: cancelling the token that was handed to Webserver.Start first
+        // aborts Watson's own teardown and leaks its TcpListener for the lifetime of the
+        // process, so the port can never be reused. Stop/Dispose release it; the token
+        // source is only cleaned up afterwards.
         try
         {
             _server?.Stop();
@@ -167,14 +175,51 @@ public sealed class HttpFileServerAdapter : IProtocolAdapter
         _server?.Dispose();
         if (_serverTask is not null)
         {
-            await Task.WhenAny(_serverTask, Task.Delay(TimeSpan.FromSeconds(5), cancellationToken));
+            await Task.WhenAny(_serverTask, Task.Delay(TimeSpan.FromSeconds(5), CancellationToken.None));
         }
 
         _serverTokenSource?.Dispose();
         _serverTokenSource = null;
         _serverTask = null;
         _server = null;
+
+        // The listening socket outlives Stop()/Dispose() by a moment. Returning early
+        // makes an immediate restart on the same port (root folder change) fail
+        // validation with "Port is not available".
+        if (_boundEndpoint is not null)
+        {
+            await WaitUntilPortReleasedAsync(_boundEndpoint, cancellationToken);
+            _boundEndpoint = null;
+        }
+
         State = ProtocolRuntimeState.Stopped;
+    }
+
+    private static async Task WaitUntilPortReleasedAsync(
+        IPEndPoint endpoint,
+        CancellationToken cancellationToken)
+    {
+        var started = Stopwatch.GetTimestamp();
+        while (true)
+        {
+            try
+            {
+                using var probe = new TcpListener(endpoint.Address, endpoint.Port);
+                probe.Start();
+                probe.Stop();
+                return;
+            }
+            catch (SocketException)
+            {
+                if (Stopwatch.GetElapsedTime(started) > TimeSpan.FromSeconds(5))
+                {
+                    // Give up quietly; the next start reports the port conflict itself.
+                    return;
+                }
+
+                await Task.Delay(25, cancellationToken);
+            }
+        }
     }
 
     private static async Task WaitUntilListeningAsync(

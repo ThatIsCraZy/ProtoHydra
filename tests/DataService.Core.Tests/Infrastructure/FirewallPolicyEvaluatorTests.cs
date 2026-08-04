@@ -23,7 +23,8 @@ public sealed class FirewallPolicyEvaluatorTests
         string? remoteAddresses = null,
         string? serviceName = null,
         string? localAppPackageId = null,
-        string? localUserOwner = null)
+        string? localUserOwner = null,
+        string? interfaceTypes = null)
         => new(
             "test-rule",
             enabled,
@@ -35,7 +36,8 @@ public sealed class FirewallPolicyEvaluatorTests
             profiles,
             remoteAddresses,
             localAppPackageId,
-            localUserOwner);
+            localUserOwner,
+            interfaceTypes);
 
     private static FirewallProbeTarget Target(
         int port = 8080,
@@ -262,6 +264,63 @@ public sealed class FirewallPolicyEvaluatorTests
 
         Assert.Equal(FirewallStatusLevel.Green, snapshot.Level);
         Assert.True(snapshot.Ports[0].IsAllowed);
+    }
+
+    // A rule limited to certain interface types does not open the port on every NIC,
+    // so it must count as restricted instead of fully open.
+    [Theory]
+    [InlineData("RemoteAccess")]
+    [InlineData("Wireless")]
+    [InlineData("Lan")]
+    [InlineData("Wireless,RemoteAccess")]
+    public void Evaluate_InterfaceScopedAllowRule_IsReportedAsPartial(string interfaceTypes)
+    {
+        var policy = Policy(
+            [Profile(FirewallProfile.Private)],
+            rules: AllowRule(profiles: (int)FirewallProfile.Private, interfaceTypes: interfaceTypes));
+
+        var snapshot = FirewallPolicyEvaluator.Evaluate(ExecutablePath, [Target()], policy);
+
+        Assert.Equal(FirewallStatusLevel.Yellow, snapshot.Level);
+        Assert.True(snapshot.Ports[0].IsAllowed);
+        Assert.True(snapshot.Ports[0].IsRestricted);
+    }
+
+    [Theory]
+    [InlineData("All")]
+    [InlineData("all")]
+    [InlineData("Lan,All")]
+    [InlineData("")]
+    [InlineData(null)]
+    public void Evaluate_UnrestrictedInterfaceTypes_StaysFullyOpen(string? interfaceTypes)
+    {
+        var policy = Policy(
+            [Profile(FirewallProfile.Private)],
+            rules: AllowRule(profiles: (int)FirewallProfile.Private, interfaceTypes: interfaceTypes));
+
+        var snapshot = FirewallPolicyEvaluator.Evaluate(ExecutablePath, [Target()], policy);
+
+        Assert.Equal(FirewallStatusLevel.Green, snapshot.Level);
+        Assert.NotEqual(true, snapshot.Ports[0].IsRestricted);
+    }
+
+    [Fact]
+    public void Evaluate_UnrestrictedRuleAlongsideScopedRule_CountsAsFullyOpen()
+    {
+        // Windows commonly ships several allow rules for the same port. One unrestricted
+        // rule is enough to make the port genuinely open.
+        var policy = Policy(
+            [Profile(FirewallProfile.Private)],
+            rules:
+            [
+                AllowRule(profiles: (int)FirewallProfile.Private, interfaceTypes: "Wireless"),
+                AllowRule(profiles: (int)FirewallProfile.Private, interfaceTypes: "All")
+            ]);
+
+        var snapshot = FirewallPolicyEvaluator.Evaluate(ExecutablePath, [Target()], policy);
+
+        Assert.Equal(FirewallStatusLevel.Green, snapshot.Level);
+        Assert.NotEqual(true, snapshot.Ports[0].IsRestricted);
     }
 
     [Fact]

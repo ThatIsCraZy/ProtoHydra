@@ -47,6 +47,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private bool _isDarkTheme = true;
     private bool _isFirewallFixActive;
     private bool _isCapturing;
+    private bool _isApplyingRootPath;
     private string _captureStatusText = "";
     private TransferCaptureSession? _captureSession;
     private bool _hasIoErrors;
@@ -106,7 +107,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         ClearLogCommand = new RelayCommand(ClearLog);
         ToggleLogPauseCommand = new RelayCommand(() => IsLogPaused = !IsLogPaused);
-        ApplyRootPathCommand = new RelayCommand(ApplyRootPath, CanApplyRootPath);
+        ApplyRootPathCommand = new AsyncRelayCommand(ApplyRootPathAsync, CanApplyRootPath);
         ExportLogCommand = new RelayCommand(ExportLog);
         StartAllCommand = new AsyncRelayCommand(StartAllAsync);
         StopAllCommand = new AsyncRelayCommand(StopAllAsync);
@@ -167,13 +168,27 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     public string RootStatus
-        => !Directory.Exists(PendingRootPath)
-            ? "Selected folder does not exist"
-            : PathsEqual(PendingRootPath, RootPath)
-                ? "Selected folder is active"
-                : HasActiveListeners
-                    ? "Stop all services before applying a new root folder"
-                    : "Selected folder is ready to apply";
+    {
+        get
+        {
+            if (!Directory.Exists(PendingRootPath))
+            {
+                return "Selected folder does not exist";
+            }
+
+            if (PathsEqual(PendingRootPath, RootPath))
+            {
+                return "Selected folder is active";
+            }
+
+            var running = Frontends.Count(frontend => frontend.IsRunning);
+            return running == 0
+                ? "Selected folder is ready to apply"
+                : string.Create(
+                    CultureInfo.InvariantCulture,
+                    $"Ready to apply — restarts {running} running listener(s) after confirmation");
+        }
+    }
 
     public string ServiceStatus
     {
@@ -268,7 +283,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     public IRelayCommand ToggleLogPauseCommand { get; }
 
-    public IRelayCommand ApplyRootPathCommand { get; }
+    public IAsyncRelayCommand ApplyRootPathCommand { get; }
+
+    /// <summary>
+    /// Set by the view: asks the user whether the listed running listeners may be
+    /// restarted to pick up a new root folder. Without a hook the change is skipped
+    /// rather than silently interrupting active transfers.
+    /// </summary>
+    public Func<IReadOnlyList<string>, Task<bool>>? ConfirmRootPathRestartAsync { get; set; }
 
     public IRelayCommand ExportLogCommand { get; }
 
@@ -518,12 +540,53 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private bool CanApplyRootPath()
         => Directory.Exists(PendingRootPath)
             && !PathsEqual(PendingRootPath, RootPath)
-            && !HasActiveListeners;
+            && !_isApplyingRootPath;
 
-    private void ApplyRootPath()
+    /// <summary>
+    /// Applies the pending root folder. Listeners hold the old root for the lifetime of
+    /// their session, so running ones are restarted — after the view confirmed it.
+    /// </summary>
+    private async Task ApplyRootPathAsync()
     {
-        RootPath = Path.GetFullPath(PendingRootPath);
-        PendingRootPath = RootPath;
+        var restartTargets = Frontends.Where(frontend => frontend.IsRunning).ToArray();
+        if (restartTargets.Length > 0)
+        {
+            var confirm = ConfirmRootPathRestartAsync;
+            if (confirm is null || !await confirm(restartTargets.Select(f => f.ProtocolText).ToArray()))
+            {
+                return;
+            }
+        }
+
+        _isApplyingRootPath = true;
+        ApplyRootPathCommand.NotifyCanExecuteChanged();
+        try
+        {
+            foreach (var frontend in restartTargets)
+            {
+                await frontend.StopIfRunningAsync(CancellationToken.None);
+            }
+
+            RootPath = Path.GetFullPath(PendingRootPath);
+            PendingRootPath = RootPath;
+
+            foreach (var frontend in restartTargets)
+            {
+                await frontend.StartIfStoppedAsync(CancellationToken.None);
+            }
+        }
+        finally
+        {
+            _isApplyingRootPath = false;
+            ApplyRootPathCommand.NotifyCanExecuteChanged();
+            OnPropertyChanged(nameof(ServiceStatus));
+            OnPropertyChanged(nameof(RootStatus));
+        }
+
+        if (restartTargets.Length > 0)
+        {
+            await RefreshFirewallStatusAsync();
+        }
     }
 
     private static bool PathsEqual(string left, string right)

@@ -117,7 +117,8 @@ public sealed class WindowsFirewallStatusService : IFirewallStatusService
                     (int)rule.Profiles,
                     rule.RemoteAddresses as string,
                     ReadLocalAppPackageId(rule),
-                    ReadLocalUserOwner(rule)));
+                    ReadLocalUserOwner(rule),
+                    rule.InterfaceTypes as string));
             }
             catch (Exception)
             {
