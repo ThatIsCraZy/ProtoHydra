@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ProtoHydra: portable TFTP, FTP, SFTP, SCP and HTTP server for Windows</title>
+<meta name="description" content="Free portable file server for Windows. Serve one folder over TFTP, FTP, FTPS, SFTP, SCP, HTTP and HTTPS at the same time. No install, no service, one EXE.">
+<link rel="canonical" href="https://thatiscrazy.github.io/ProtoHydra/">
+<link rel="alternate" hreflang="en" href="https://thatiscrazy.github.io/ProtoHydra/">
+<link rel="alternate" hreflang="de" href="https://thatiscrazy.github.io/ProtoHydra/de/">
+<link rel="alternate" hreflang="x-default" href="https://thatiscrazy.github.io/ProtoHydra/">
+<meta name="author" content="ThatIsCraZy">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ProtoHydra">
+<meta property="og:locale" content="en_US">
+<meta property="og:locale:alternate" content="de_DE">
+<meta property="og:title" content="ProtoHydra: portable TFTP, FTP, SFTP, SCP and HTTP server for Windows">
+<meta property="og:description" content="Serve one folder over TFTP, FTP, FTPS, SFTP, SCP, HTTP and HTTPS at the same time. No install, no service, one EXE for firmware upgrades and PXE boot.">
+<meta property="og:url" content="https://thatiscrazy.github.io/ProtoHydra/">
+<meta property="og:image" content="https://thatiscrazy.github.io/ProtoHydra/screenshot.png">
+<meta property="og:image:alt" content="ProtoHydra on Windows with seven protocol servers running on one folder and a live transfer log">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#0b7f86" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0e1419" media="(prefers-color-scheme: dark)">
+<link rel="stylesheet" href="style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "SoftwareApplication",
+      "name": "ProtoHydra",
+      "alternateName": "ProtoHydra multi-protocol file server",
+      "description": "Portable multi-protocol file server for Windows that serves a single folder over TFTP, FTP, FTPS, SFTP, SCP, HTTP and HTTPS at the same time, without installation or a Windows service.",
+      "url": "https://thatiscrazy.github.io/ProtoHydra/",
+      "downloadUrl": "https://github.com/ThatIsCraZy/ProtoHydra/releases/latest",
+      "installUrl": "https://github.com/ThatIsCraZy/ProtoHydra/releases/latest",
+      "softwareVersion": "1.6",
+      "applicationCategory": "UtilitiesApplication",
+      "applicationSubCategory": "File transfer server",
+      "operatingSystem": "Windows 10, Windows 11, Windows Server (x64)",
+      "processorRequirements": "x64",
+      "license": "https://github.com/ThatIsCraZy/ProtoHydra/blob/master/LICENSE",
+      "isAccessibleForFree": true,
+      "screenshot": "https://thatiscrazy.github.io/ProtoHydra/screenshot.png",
+      "featureList": [
+        "TFTP server", "FTP server", "FTPS server", "SFTP server", "SCP server", "HTTP server", "HTTPS server",
+        "Portable single EXE", "Live transfer log", "Temporary Windows firewall rule", "Argon2id user authentication"
+      ],
+      "author": { "@type": "Person", "name": "ThatIsCraZy" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        { "@type": "Question", "name": "Is ProtoHydra a free TFTP server for Windows 10 and Windows 11?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes. ProtoHydra is open source under the MIT license, runs on Windows 10 and Windows 11 (x64) and adds FTP, FTPS, SFTP, SCP, HTTP and HTTPS next to TFTP." } },
+        { "@type": "Question", "name": "Do I have to install anything?",
+          "acceptedAnswer": { "@type": "Answer", "text": "No. A single EXE, no setup, no Windows service, no .NET installation. It also runs from a USB stick or a maintenance toolkit folder." } },
+        { "@type": "Question", "name": "How do I push firmware to a switch or router over TFTP?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Pick the firmware folder as root, start TFTP and trigger the transfer on the device, for example copy tftp: flash: on Cisco IOS. If the device refuses TFTP, enable SCP or SFTP in the same window. The folder stays the same." } },
+        { "@type": "Question", "name": "How do I back up a network device configuration?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Run copy running-config tftp: on the device. The file lands directly in the root folder. The restore takes the same path back, or goes over SFTP or FTP instead." } },
+        { "@type": "Question", "name": "Is ProtoHydra usable for PXE and network boot?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes. TFTP serves bootloaders such as pxelinux.0 or ipxe.efi, HTTP serves the large images (WIM, Squashfs, ISO) at much higher throughput." } },
+        { "@type": "Question", "name": "Why does ProtoHydra ask for administrator rights?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Only for ports below 1024 (69, 21, 22, 80, 443). Without elevation, switch to high ports in the UI, for example 6969, 2121, 2222 or 8080." } },
+        { "@type": "Question", "name": "Does SCP work with WinSCP and OpenSSH?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes. The SCP service handles classic scp -O (exec mode) and the shell-based SCP mode of WinSCP. Modern OpenSSH clients use SFTP internally for scp without -O, which is served as well." } },
+        { "@type": "Question", "name": "Is there a Linux or macOS build?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Not at the moment. The published artifact is a self-contained EXE for Windows x64." } },
+        { "@type": "Question", "name": "How is this different from Tftpd64, FileZilla Server or OpenSSH for Windows?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Those tools each cover one protocol or protocol family and are usually installed or registered as a service. ProtoHydra puts seven protocols on the same folder, starts portable and shows every file operation across all protocols in one live log." } },
+        { "@type": "Question", "name": "Can I run ProtoHydra permanently?",
+          "acceptedAnswer": { "@type": "Answer", "text": "No. It is a maintenance tool. By default it accepts any username and password, so it belongs in a maintenance network behind a firewall and should run only for the duration of a transfer." } }
+      ]
+    }
+  ]
+}
+</script>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="./">ProtoHydra</a>
+    <nav>
+      <a class="hide-sm" href="#protocols">Protocols</a>
+      <a class="hide-sm" href="#features">Features</a>
+      <a href="#quickstart">Quick start</a>
+      <a href="#faq">FAQ</a>
+      <a href="https://github.com/ThatIsCraZy/ProtoHydra">GitHub</a>
+      <a class="lang" href="de/" hreflang="de" lang="de">Deutsch</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <div class="hero">
+    <h1>TFTP, FTP, FTPS, SFTP, SCP, HTTP and HTTPS server for Windows, in one portable EXE</h1>
+    <p class="lede"><strong>ProtoHydra serves a single folder over seven protocols at the same time.</strong> No installation, no Windows service, no .NET runtime to deploy. Built for the work that happens next to the rack: flashing network gear, bootstrapping appliances, backing up device configs and serving PXE boot files.</p>
+    <p class="cta">
+      <a class="btn" href="https://github.com/ThatIsCraZy/ProtoHydra/releases/latest">Download ProtoHydra.exe</a>
+      <a class="btn secondary" href="https://github.com/ThatIsCraZy/ProtoHydra">View source on GitHub</a>
+    </p>
+    <p class="meta">Free and open source (MIT) &middot; Windows x64 &middot; self-contained, no .NET install &middot; latest release v1.6</p>
+
+    <figure>
+      <img src="screenshot.png" width="2560" height="1640"
+           alt="ProtoHydra on Windows: TFTP, FTP, FTPS, SFTP, SCP, HTTP and HTTPS servers running in parallel on one folder, next to the live log of file transfers">
+      <figcaption>One root folder, seven protocol switches, one live log of every transfer.</figcaption>
+    </figure>
+  </div>
+
+  <section id="usecases">
+    <h2>What system administrators use it for</h2>
+    <p class="sub">One tool instead of a different server per maintenance task.</p>
+    <div class="cards">
+      <div class="card">
+        <h3>Firmware upgrades</h3>
+        <p>Switches, routers, FC fabrics, WLAN controllers and storage appliances each expect TFTP, SCP or SFTP. Offer the firmware folder over all of them at once and stop guessing which one the device accepts.</p>
+      </div>
+      <div class="card">
+        <h3>Config backup and restore</h3>
+        <p><code>copy running-config tftp:</code> or an SCP upload lands directly in the root folder. The restore takes the same path back.</p>
+      </div>
+      <div class="card">
+        <h3>PXE and network boot</h3>
+        <p>TFTP delivers <code>pxelinux.0</code>, <code>ipxe.efi</code> and WDS stages while HTTP moves the large WIM, Squashfs and ISO images far faster.</p>
+      </div>
+      <div class="card">
+        <h3>Air-gapped networks</h3>
+        <p>When no central file server is reachable, a maintenance laptop bridges the gap without installing anything permanently.</p>
+      </div>
+      <div class="card">
+        <h3>Drivers and installers</h3>
+        <p>An on-site technician or a device pulls files over HTTP/HTTPS in the browser or by script, with a clickable directory listing.</p>
+      </div>
+      <div class="card">
+        <h3>Client interop testing</h3>
+        <p>Check reproducibly how a client behaves against FTP, FTPS, SFTP or classic SCP, including a plaintext capture of the protocol traffic.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="protocols">
+    <h2>Supported protocols</h2>
+    <p class="sub">Each one starts and stops on its own, port and bind address are configurable.</p>
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr><th>Protocol</th><th>Download</th><th>Upload</th><th>Listing</th><th>Authentication</th><th>Encryption</th><th>Default port</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><b>TFTP</b></td><td class="c">yes</td><td class="c">yes</td><td class="c">no</td><td>none (protocol limitation)</td><td>none</td><td><code>69/UDP</code></td></tr>
+          <tr><td><b>FTP</b></td><td class="c">yes</td><td class="c">yes</td><td class="c">yes</td><td>accept-any or defined users</td><td>none</td><td><code>21</code></td></tr>
+          <tr><td><b>FTPS</b></td><td class="c">yes</td><td class="c">yes</td><td class="c">yes</td><td>accept-any or defined users</td><td>TLS</td><td><code>990</code></td></tr>
+          <tr><td><b>SFTP</b></td><td class="c">yes</td><td class="c">yes</td><td class="c">yes</td><td>accept-any or defined users</td><td>SSH</td><td><code>22</code></td></tr>
+          <tr><td><b>SCP</b></td><td class="c">yes</td><td class="c">yes</td><td class="c">no</td><td>accept-any or defined users</td><td>SSH</td><td><code>22</code> (shared)</td></tr>
+          <tr><td><b>HTTP</b></td><td class="c">yes</td><td class="c">no</td><td class="c">HTML</td><td>accept-any or Basic</td><td>none</td><td><code>80</code></td></tr>
+          <tr><td><b>HTTPS</b></td><td class="c">yes</td><td class="c">no</td><td class="c">HTML</td><td>accept-any or Basic</td><td>TLS</td><td><code>443</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="meta">SFTP and SCP share one SSH listener, so port and bind address must match, but they can be enabled independently. The SCP service speaks both classic <code>scp -O</code> and the shell-based SCP mode of WinSCP.</p>
+  </section>
+
+  <section id="features">
+    <h2>Features that matter during a maintenance window</h2>
+    <ul class="feat">
+      <li><b>One shared root folder</b> for all protocols, switchable while services run.</li>
+      <li><b>Live log</b> with source IP, command, path, bytes, result and duration per operation, failures in red.</li>
+      <li><b>Transfer capture</b> writes a plaintext log next to the EXE where every line starts with INFO or ERROR.</li>
+      <li><b>IO status</b> catches missing permissions, unplugged USB media, un-hydrated OneDrive placeholders and full disks.</li>
+      <li><b>Firewall status</b> checks per active Windows Firewall profile whether the configured ports are actually reachable.</li>
+      <li><b>Temporary firewall rule</b> opens the active ports elevated and removes the rule again on exit.</li>
+      <li><b>Automatic crypto bootstrap</b> generates the self-signed X.509 certificate and SSH host key on first start.</li>
+      <li><b>Safe path handling</b> blocks root escapes and symlinks or reparse points leading out of the root.</li>
+      <li><b>Port conflict detection</b> reports occupied ports before a service starts.</li>
+      <li><b>Light and dark theme</b>, switchable at runtime.</li>
+    </ul>
+  </section>
+
+  <section id="quickstart">
+    <h2>Quick start</h2>
+    <ol class="steps">
+      <li><b>Download</b> <code>ProtoHydra.exe</code> from the <a href="https://github.com/ThatIsCraZy/ProtoHydra/releases/latest">latest release</a> and run it. Run it as administrator if you need the default ports below 1024.</li>
+      <li><b>Pick the root folder</b> to serve. It is exposed as <code>/</code> across every protocol.</li>
+      <li><b>Start the protocols</b> the device expects, individually or with Start All.</li>
+      <li><b>Trigger the transfer</b> on the device and follow it in the live log.</li>
+    </ol>
+<pre><code><span class="c"># TFTP</span>
+tftp &lt;host&gt; 69 get &lt;file&gt;
+tftp &lt;host&gt; 69 put &lt;file&gt;
+
+<span class="c"># SFTP / SCP</span>
+sftp anyuser@&lt;host&gt;
+scp -O &lt;file&gt; anyuser@&lt;host&gt;:/target/       <span class="c"># classic SCP (exec mode)</span>
+scp -O -r &lt;folder&gt; anyuser@&lt;host&gt;:/target/  <span class="c"># recursive</span>
+
+<span class="c"># Cisco IOS, firmware and config</span>
+copy tftp: flash:
+copy running-config tftp:</code></pre>
+    <p class="meta">FTP and FTPS work with FileZilla, WinSCP or curl on port 21 and 990. HTTP and HTTPS open in any browser at <code>http://&lt;host&gt;/</code>.</p>
+  </section>
+
+  <section id="security">
+    <h2>Security notice</h2>
+    <div class="notice">
+      <p><b>ProtoHydra is not a hardened production server.</b> By default it uses accept-any authentication: every username and password is accepted and there is no access control. That is deliberate for maintenance and bootstrapping, where devices send fixed or empty credentials.</p>
+      <p>Optionally you can switch to defined users with passwords stored as Argon2id hashes, effective immediately for FTP, FTPS, SFTP, SCP and HTTP Basic auth. TFTP stays unauthenticated because the protocol has no authentication.</p>
+      <p>Run it in a maintenance or device network behind a firewall, never on the open internet, and only for as long as the transfer takes.</p>
+    </div>
+  </section>
+
+  <section id="faq" class="faq">
+    <h2>Frequently asked questions</h2>
+    <p class="sub">TFTP, SFTP and SCP questions that come up in the field.</p>
+
+    <details open>
+      <summary>Is ProtoHydra a free TFTP server for Windows 10 and Windows 11?</summary>
+      <p class="answer">Yes. ProtoHydra is open source under the MIT license, runs on Windows 10 and Windows 11 (x64) and adds FTP, FTPS, SFTP, SCP, HTTP and HTTPS next to TFTP.</p>
+    </details>
+    <details>
+      <summary>Do I have to install anything?</summary>
+      <p class="answer">No. A single EXE, no setup, no Windows service, no .NET installation. It also runs from a USB stick or a maintenance toolkit folder.</p>
+    </details>
+    <details>
+      <summary>How do I push firmware to a switch or router over TFTP?</summary>
+      <p class="answer">Pick the firmware folder as root, start TFTP and trigger the transfer on the device, for example <code>copy tftp: flash:</code> on Cisco IOS. If the device refuses TFTP, enable SCP or SFTP in the same window. The folder stays the same.</p>
+    </details>
+    <details>
+      <summary>How do I back up a network device configuration?</summary>
+      <p class="answer">Run <code>copy running-config tftp:</code> on the device. The file lands directly in the root folder. The restore takes the same path back, or goes over SFTP or FTP instead.</p>
+    </details>
+    <details>
+      <summary>Is ProtoHydra usable for PXE and network boot?</summary>
+      <p class="answer">Yes. TFTP serves bootloaders such as <code>pxelinux.0</code> or <code>ipxe.efi</code>, HTTP serves the large images (WIM, Squashfs, ISO) at much higher throughput.</p>
+    </details>
+    <details>
+      <summary>Why does ProtoHydra ask for administrator rights?</summary>
+      <p class="answer">Only for ports below 1024 (69, 21, 22, 80, 443). Without elevation, switch to high ports in the UI, for example 6969, 2121, 2222 or 8080.</p>
+    </details>
+    <details>
+      <summary>Does SCP work with WinSCP and OpenSSH?</summary>
+      <p class="answer">Yes. The SCP service handles classic <code>scp -O</code> (exec mode) and the shell-based SCP mode of WinSCP. Modern OpenSSH clients use SFTP internally for <code>scp</code> without <code>-O</code>, which is served as well.</p>
+    </details>
+    <details>
+      <summary>Is there a Linux or macOS build?</summary>
+      <p class="answer">Not at the moment. The published artifact is a self-contained EXE for Windows x64.</p>
+    </details>
+    <details>
+      <summary>How is this different from Tftpd64, FileZilla Server or OpenSSH for Windows?</summary>
+      <p class="answer">Those tools each cover one protocol or protocol family and are usually installed or registered as a service. ProtoHydra puts seven protocols on the same folder, starts portable and shows every file operation across all protocols in one live log.</p>
+    </details>
+    <details>
+      <summary>Can I run ProtoHydra permanently?</summary>
+      <p class="answer">No. It is a maintenance tool. By default it accepts any username and password, so it belongs in a maintenance network behind a firewall and should run only for the duration of a transfer.</p>
+    </details>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <p><a href="https://github.com/ThatIsCraZy/ProtoHydra">Source on GitHub</a> &middot; <a href="https://github.com/ThatIsCraZy/ProtoHydra/releases">Releases</a> &middot; <a href="https://github.com/ThatIsCraZy/ProtoHydra/blob/master/SECURITY.md">Report a vulnerability</a> &middot; <a href="de/" hreflang="de" lang="de">Deutsche Version</a></p>
+    <p>ProtoHydra is licensed under the MIT license. Copyright &copy; 2026 ThatIsCraZy. Third-party components keep their own licenses.</p>
+  </div>
+</footer>
+
+</body>
+</html>
