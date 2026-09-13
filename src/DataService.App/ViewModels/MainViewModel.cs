@@ -60,8 +60,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         IFirewallStatusService firewallStatusService,
         IFirewallTemporaryRuleService firewallTemporaryRuleService,
         IoErrorLog ioErrorLog,
+        SerialConsoleViewModel serialConsole,
         IEnumerable<IProtocolAdapter> adapters)
     {
+        SerialConsole = serialConsole;
         _configuration = configuration;
         _eventBus = eventBus;
         _authenticationPolicy = authenticationPolicy;
@@ -205,6 +207,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         => _authenticationPolicy.RequiresCredentials
             ? "Defined-users authentication active. TFTP remains unauthenticated (protocol limitation)."
             : "Accept-Any authentication is not access control. Every supplied username and password is accepted.";
+
+    /// <summary>Backs the serial console tab.</summary>
+    public SerialConsoleViewModel SerialConsole { get; }
 
     public AuthenticationViewModel CreateAuthenticationViewModel()
         => new(_authenticationPolicy, _authenticationSettingsStore);
@@ -356,11 +361,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _disposeTokenSource.Dispose();
         _captureSession?.Dispose();
         _captureSession = null;
+        SerialConsole.Dispose();
         GC.SuppressFinalize(this);
     }
 
     public async Task ShutdownAsync(CancellationToken cancellationToken)
     {
+        await SerialConsole.ShutdownAsync();
         await StopAllAsync();
         _disposeTokenSource.Cancel();
     }

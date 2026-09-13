@@ -1,5 +1,5 @@
 <a id="filehydra"></a>
-# ProtoHydra: TFTP, FTP, FTPS, SFTP, SCP, HTTP and HTTPS Server for Windows
+# ProtoHydra: TFTP, FTP, FTPS, SFTP, SCP, HTTP and HTTPS Server with Serial Console for Windows
 
 [![Latest release](https://img.shields.io/github/v/release/ThatIsCraZy/ProtoHydra?label=latest%20release)](https://github.com/ThatIsCraZy/ProtoHydra/releases/latest)
 [![Downloads](https://img.shields.io/github/downloads/ThatIsCraZy/ProtoHydra/total?label=downloads)](https://github.com/ThatIsCraZy/ProtoHydra/releases)
@@ -7,9 +7,9 @@
 [![Platform: Windows x64](https://img.shields.io/badge/platform-Windows%20x64-0078D6)](#installation-unter-windows-portabel-ohne-setup)
 [![No .NET required](https://img.shields.io/badge/.NET-self--contained-5C2D91)](#installation-unter-windows-portabel-ohne-setup)
 
-**Free, portable multi-protocol file server for Windows. It serves one folder over TFTP, FTP, FTPS, SFTP, SCP, HTTP and HTTPS at the same time, without installation, without a Windows service and without an installed .NET runtime. One EXE for firmware upgrades, PXE boot, config backup and restore, and device recovery.**
+**Free, portable multi-protocol file server for Windows. It serves one folder over TFTP, FTP, FTPS, SFTP, SCP, HTTP and HTTPS at the same time, without installation, without a Windows service and without an installed .NET runtime. One EXE for firmware upgrades, PXE boot, config backup and restore, and device recovery. A built-in serial console drives the device console in the same window while the transfer runs.**
 
-_Kostenloser, portabler Multi-Protokoll-Dateiserver für Windows. Er stellt einen Ordner gleichzeitig über TFTP, FTP, FTPS, SFTP, SCP, HTTP und HTTPS bereit, ohne Installation, ohne Dienst und ohne installierte .NET-Runtime. Eine EXE für Firmware-Updates, PXE-Boot, Konfigurations-Backups und Geräte-Recovery._
+_Kostenloser, portabler Multi-Protokoll-Dateiserver für Windows. Er stellt einen Ordner gleichzeitig über TFTP, FTP, FTPS, SFTP, SCP, HTTP und HTTPS bereit, ohne Installation, ohne Dienst und ohne installierte .NET-Runtime. Eine EXE für Firmware-Updates, PXE-Boot, Konfigurations-Backups und Geräte-Recovery. Eine eingebaute serielle Konsole bedient im selben Fenster die Geräte-Konsole, während der Transfer läuft._
 
 **[⬇️ Download ProtoHydra.exe](https://github.com/ThatIsCraZy/ProtoHydra/releases/latest)**  ·  **[🌐 Website & FAQ](https://thatiscrazy.github.io/ProtoHydra/)**  ·  **Sprache / Language:  [🇩🇪 Deutsch](#-deutsch)  ·  [🇬🇧 English](#-english)**
 
@@ -22,7 +22,7 @@ ProtoHydra ist eine portable Windows-Desktopanwendung, die einen einzigen Ordner
 
 Gedacht ist das Werkzeug für den Admin-Alltag: Netzwerkgeräte flashen, Appliances bootstrappen, Konfigurationen ein- und ausspielen, Recovery-Images ausliefern – oft an einem isolierten Wartungslaptop, direkt neben dem Rack.
 
-**Inhalt:** [Einsatzzwecke](#wofür-systemadministratoren-protohydra-einsetzen) · [Protokolle](#unterstützte-protokolle-tftp-ftp-ftps-sftp-scp-http-und-https) · [Funktionen](#kernfunktionen-für-den-betrieb) · [Installation](#installation-unter-windows-portabel-ohne-setup) · [Verwendung](#verwendung) · [FAQ](#faq-de) · [Sicherheit](#sicherheitshinweise) · [Build](#bauen-aus-dem-quellcode)
+**Inhalt:** [Einsatzzwecke](#wofür-systemadministratoren-protohydra-einsetzen) · [Protokolle](#unterstützte-protokolle-tftp-ftp-ftps-sftp-scp-http-und-https) · [Funktionen](#kernfunktionen-für-den-betrieb) · [Serielle Konsole](#serielle-konsole) · [Installation](#installation-unter-windows-portabel-ohne-setup) · [Verwendung](#verwendung) · [FAQ](#faq-de) · [Sicherheit](#sicherheitshinweise) · [Build](#bauen-aus-dem-quellcode)
 
 ![ProtoHydra unter Windows: TFTP-, FTP-, FTPS-, SFTP-, SCP-, HTTP- und HTTPS-Server laufen parallel auf einem Ordner, daneben das Live-Log der Dateitransfers](docs/screenshot.png)
 
@@ -63,7 +63,23 @@ Gedacht ist das Werkzeug für den Admin-Alltag: Netzwerkgeräte flashen, Applian
 - **Automatisches Krypto-Bootstrapping** – selbstsignierte X.509-Zertifikate (HTTPS/FTPS) und der SSH-Host-Key werden beim ersten Start erzeugt und persistent gespeichert.
 - **Sicherer Pfadschutz** – kein Client kann den Root-Ordner verlassen; Symlinks/Reparse-Points aus dem Root heraus werden blockiert.
 - **Portkonflikterkennung** – belegte Ports werden vor dem Start erkannt und gemeldet.
+- **Serielle Konsole** – VT100/xterm-Terminal auf einen COM-Port im selben Fenster, mit Scrollback, Copy & Paste wie in PuTTY, Break-Taste und Sitzungsmitschnitt. Details unter [Serielle Konsole](#serielle-konsole).
 - **Hell/Dunkel-Theme**, umschaltbar zur Laufzeit.
+
+### Serielle Konsole
+
+Der Reiter **Serial Console** öffnet ein Terminal auf einen COM-Port, im selben Fenster wie die Dateidienste. Damit läuft die Konsolensitzung dort, wo auch der Transfer läuft: am Gerät `copy tftp: flash:` eintippen und im Server-Reiter zusehen, wie die Datei durchgeht.
+
+- **Port per Dropdown**, mit dem Gerätenamen aus der Windows-Gerätedatenbank (`COM7 — USB Serial Port`) statt blanker COM-Nummern. Der Rescan-Knopf findet nachträglich eingesteckte USB-Adapter.
+- **Verbindungsparameter per Dropdown**: Baudrate von 300 bis 921600, Datenbits, Parität, Stoppbits, Flusssteuerung (keine, XON/XOFF, RTS/CTS) und die Enter-Sequenz (CR, LF, CR LF).
+- **Copy & Paste wie in PuTTY**: Markieren kopiert, Rechtsklick fügt ein. Zusätzlich `Ctrl+Shift+C` / `Ctrl+Shift+V` und `Shift+Einfg`; Doppelklick wählt ein Wort, Dreifachklick eine Zeile. Eingefügter Text wird bereinigt, Zeilenumbrüche werden auf die eingestellte Enter-Sequenz abgebildet.
+- **VT100/xterm-Emulation** mit Farben, Cursorsteuerung, Alternate Screen und 5000 Zeilen Scrollback (`Shift+Bild↑`).
+- **Break** hält die Leitung 300 ms im Break-Zustand, der Interrupt, auf den ROM-Monitore und Bootloader warten.
+- **DTR und RTS umschalten**, Leitungsanzeigen für CTS, DSR, DCD, DTR und RTS sowie RX/TX-Zähler.
+- **Sitzungsmitschnitt** über `Log to file` nach `%LOCALAPPDATA%\ProtoHydra\Logs\serial-COM<n>-*.log`.
+- **Local echo** für Geräte, die Eingaben nicht selbst zurückschicken, etwa im Bootloader.
+
+Die zuletzt benutzten Parameter werden gespeichert und beim nächsten Start wieder vorbelegt.
 
 ### Installation unter Windows (portabel, ohne Setup)
 
@@ -113,6 +129,8 @@ FTP/FTPS mit FileZilla, WinSCP oder curl (Host, Port `21`/`990`, beliebiger User
 
 > Moderne OpenSSH-Clients nutzen für `scp` intern SFTP. Für das klassische SCP-Protokoll `scp -O` verwenden. WinSCP im „SCP"-Modus wird ebenfalls unterstützt.
 
+**5. Gerätekonsole bedienen** – Im Reiter **Serial Console** COM-Port und Parameter wählen und auf `Connect` drücken. Die Dateidienste im Server-Reiter laufen dabei unverändert weiter.
+
 <a id="faq-de"></a>
 ### FAQ
 
@@ -136,6 +154,9 @@ Nur für Ports unter 1024 (69, 21, 22, 80, 443). Ohne Adminrechte weichst du im 
 
 **Funktioniert SCP mit WinSCP und OpenSSH?**
 Ja. Der SCP-Dienst beherrscht klassisches `scp -O` (Exec-Modus) und den Shell-basierten SCP-Modus von WinSCP. Moderne OpenSSH-Clients nutzen für `scp` ohne `-O` intern SFTP, das ebenfalls läuft.
+
+**Kann ich damit auch auf die serielle Konsole eines Geräts?**
+Ja. Der Reiter **Serial Console** öffnet ein VT100/xterm-Terminal auf einen COM-Port, mit Port- und Parameterauswahl per Dropdown, Copy & Paste wie in PuTTY, Break-Taste, Leitungsanzeigen und Sitzungsmitschnitt. Konsolensitzung und Dateitransfer liegen damit im selben Fenster.
 
 **Gibt es eine Version für Linux oder macOS?**
 Derzeit nicht. Veröffentlicht wird eine self-contained EXE für Windows x64.
@@ -181,8 +202,8 @@ Die fertige EXE liegt unter `src\DataService.App\bin\Release\net10.0\win-x64\pub
 ```
 src/
 ├── DataService.App/                    # Avalonia-GUI, ViewModels, Composition Root
-├── DataService.Core/                   # Modelle, Events, Diagnostics, Pfadvalidierung
-├── DataService.Infrastructure/         # Zertifikate, SSH-Keys, Konfiguration, Firewall
+├── DataService.Core/                   # Modelle, Events, Diagnostics, Pfadvalidierung, Terminalemulation
+├── DataService.Infrastructure/         # Zertifikate, SSH-Keys, Konfiguration, Firewall, serielle Ports
 ├── DataService.Protocols.Abstractions/ # IProtocolAdapter-Verträge
 ├── DataService.Protocols.Ftp/          # FTP/FTPS-Adapter
 ├── DataService.Protocols.Http/         # HTTP/HTTPS-Adapter
@@ -201,6 +222,7 @@ ProtoHydra steht auf den Schultern hervorragender Open-Source-Arbeit. Unser aufr
 | [Avalonia](https://avaloniaui.net) (`Avalonia`, `Avalonia.Desktop`, `Avalonia.Themes.Fluent`) | Plattform-GUI | AvaloniaUI OÜ & Contributors | MIT |
 | [CommunityToolkit.Mvvm](https://github.com/CommunityToolkit/dotnet) | MVVM-Grundgerüst | .NET Foundation & Contributors | MIT |
 | [.NET Extensions](https://github.com/dotnet/runtime) (`Microsoft.Extensions.Hosting`, `…Options.ConfigurationExtensions`) | Hosting, DI, Konfiguration | Microsoft / .NET Foundation | MIT |
+| [System.IO.Ports](https://github.com/dotnet/runtime) | COM-Port-Zugriff der seriellen Konsole | Microsoft / .NET Foundation | MIT |
 | [Serilog](https://serilog.net) (`Serilog.Extensions.Logging`, `Serilog.Sinks.File`) | Logging | Serilog Contributors | Apache-2.0 |
 | [Watson Webserver](https://github.com/jchristn/WatsonWebserver) | HTTP/HTTPS-Server | Joel Christner (jchristn) | MIT |
 | [FubarDev.FtpServer](https://github.com/FubarDevelopment/FtpServer) | FTP/FTPS-Server | Fubar Development Junker (Mark Junker) | MIT |
@@ -243,7 +265,7 @@ ProtoHydra is a portable Windows desktop application that serves a single folder
 
 The tool is built for everyday admin work: flashing network gear, bootstrapping appliances, pushing and pulling configurations, delivering recovery images — often from an isolated maintenance laptop right next to the rack.
 
-**Contents:** [Use cases](#what-system-administrators-use-protohydra-for) · [Protocols](#supported-protocols-tftp-ftp-ftps-sftp-scp-http-and-https) · [Features](#core-operational-features) · [Installation](#installation-on-windows-portable-no-setup) · [Usage](#usage) · [FAQ](#faq-en) · [Security](#security-notice) · [Build](#building-from-source)
+**Contents:** [Use cases](#what-system-administrators-use-protohydra-for) · [Protocols](#supported-protocols-tftp-ftp-ftps-sftp-scp-http-and-https) · [Features](#core-operational-features) · [Serial console](#serial-console) · [Installation](#installation-on-windows-portable-no-setup) · [Usage](#usage) · [FAQ](#faq-en) · [Security](#security-notice) · [Build](#building-from-source)
 
 ![ProtoHydra on Windows: TFTP, FTP, FTPS, SFTP, SCP, HTTP and HTTPS servers running in parallel on one folder, next to the live log of file transfers](docs/screenshot.png)
 
@@ -284,7 +306,23 @@ The tool is built for everyday admin work: flashing network gear, bootstrapping 
 - **Automatic crypto bootstrapping** — self-signed X.509 certificates (HTTPS/FTPS) and the SSH host key are generated on first start and stored persistently.
 - **Safe path handling** — no client can escape the root folder; symlinks/reparse points leading out of the root are blocked.
 - **Port conflict detection** — occupied ports are detected and reported before start.
+- **Serial console** – a VT100/xterm terminal on a COM port in the same window, with scrollback, PuTTY-style copy and paste, a break key and session capture. Details under [Serial console](#serial-console).
 - **Light/dark theme**, switchable at runtime.
+
+### Serial console
+
+The **Serial Console** tab opens a terminal on a COM port, in the same window as the file services. The console session runs where the transfer runs: type `copy tftp: flash:` on the device and watch the file go through in the Server tab.
+
+- **Port from a drop-down**, labelled with the device name from the Windows device tree (`COM7 — USB Serial Port`) instead of a bare COM number. The rescan button picks up USB adapters plugged in later.
+- **Connection parameters from drop-downs**: baud rate from 300 to 921600, data bits, parity, stop bits, flow control (none, XON/XOFF, RTS/CTS) and the Enter sequence (CR, LF, CR LF).
+- **Copy and paste like PuTTY**: selecting copies, right-click pastes. Plus `Ctrl+Shift+C` / `Ctrl+Shift+V` and `Shift+Insert`; double-click selects a word, triple-click a line. Pasted text is sanitised and line breaks are mapped to the configured Enter sequence.
+- **VT100/xterm emulation** with colours, cursor addressing, alternate screen and 5000 lines of scrollback (`Shift+PgUp`).
+- **Break** holds the line in break state for 300 ms, the interrupt ROM monitors and bootloaders listen for.
+- **Toggle DTR and RTS**, line indicators for CTS, DSR, DCD, DTR and RTS, plus RX/TX counters.
+- **Session capture** through `Log to file` into `%LOCALAPPDATA%\ProtoHydra\Logs\serial-COM<n>-*.log`.
+- **Local echo** for devices that do not echo input themselves, such as a bootloader.
+
+The parameters you last used are stored and pre-selected on the next start.
 
 ### Installation on Windows (portable, no setup)
 
@@ -334,6 +372,8 @@ FTP/FTPS with FileZilla, WinSCP or curl (host, port `21`/`990`, any user/pass). 
 
 > Modern OpenSSH clients use SFTP internally for `scp`. Use `scp -O` for the classic SCP protocol. WinSCP's "SCP" mode is also supported.
 
+**5. Drive the device console** — in the **Serial Console** tab pick the COM port and parameters and press `Connect`. The file services in the Server tab keep running unchanged.
+
 <a id="faq-en"></a>
 ### FAQ
 
@@ -357,6 +397,9 @@ Only for ports below 1024 (69, 21, 22, 80, 443). Without elevation, switch to hi
 
 **Does SCP work with WinSCP and OpenSSH?**
 Yes. The SCP service handles classic `scp -O` (exec mode) and WinSCP's shell-based SCP mode. Modern OpenSSH clients use SFTP internally for `scp` without `-O`, which is served as well.
+
+**Can I also reach the serial console of a device?**
+Yes. The **Serial Console** tab opens a VT100/xterm terminal on a COM port, with port and parameter drop-downs, PuTTY-style copy and paste, a break key, line indicators and session capture. Console session and file transfer therefore live in the same window.
 
 **Is there a Linux or macOS build?**
 Not at the moment. The published artifact is a self-contained EXE for Windows x64.
@@ -402,8 +445,8 @@ The finished EXE is located at `src\DataService.App\bin\Release\net10.0\win-x64\
 ```
 src/
 ├── DataService.App/                    # Avalonia GUI, ViewModels, composition root
-├── DataService.Core/                   # models, events, diagnostics, path validation
-├── DataService.Infrastructure/         # certificates, SSH keys, configuration, firewall
+├── DataService.Core/                   # models, events, diagnostics, path validation, terminal emulation
+├── DataService.Infrastructure/         # certificates, SSH keys, configuration, firewall, serial ports
 ├── DataService.Protocols.Abstractions/ # IProtocolAdapter contracts
 ├── DataService.Protocols.Ftp/          # FTP/FTPS adapter
 ├── DataService.Protocols.Http/         # HTTP/HTTPS adapter
@@ -422,6 +465,7 @@ ProtoHydra stands on the shoulders of excellent open-source work. Our sincere th
 | [Avalonia](https://avaloniaui.net) (`Avalonia`, `Avalonia.Desktop`, `Avalonia.Themes.Fluent`) | Cross-platform GUI | AvaloniaUI OÜ & contributors | MIT |
 | [CommunityToolkit.Mvvm](https://github.com/CommunityToolkit/dotnet) | MVVM foundation | .NET Foundation & contributors | MIT |
 | [.NET Extensions](https://github.com/dotnet/runtime) (`Microsoft.Extensions.Hosting`, `…Options.ConfigurationExtensions`) | Hosting, DI, configuration | Microsoft / .NET Foundation | MIT |
+| [System.IO.Ports](https://github.com/dotnet/runtime) | COM port access for the serial console | Microsoft / .NET Foundation | MIT |
 | [Serilog](https://serilog.net) (`Serilog.Extensions.Logging`, `Serilog.Sinks.File`) | Logging | Serilog contributors | Apache-2.0 |
 | [Watson Webserver](https://github.com/jchristn/WatsonWebserver) | HTTP/HTTPS server | Joel Christner (jchristn) | MIT |
 | [FubarDev.FtpServer](https://github.com/FubarDevelopment/FtpServer) | FTP/FTPS server | Fubar Development Junker (Mark Junker) | MIT |

@@ -158,6 +158,25 @@
     <Style Selector="Button.link:pointerover /template/ ContentPresenter#PART_ContentPresenter">
       <Setter Property="Background" Value="Transparent" />
     </Style>
+    <!-- Hauptnavigation: Server / Serial Console -->
+    <Style Selector="TabControl.mainTabs">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Padding" Value="0" />
+    </Style>
+    <Style Selector="TabControl.mainTabs > TabItem">
+      <Setter Property="FontSize" Value="13" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{DynamicResource AppMutedTextBrush}" />
+      <Setter Property="Padding" Value="18,10" />
+      <Setter Property="MinHeight" Value="0" />
+    </Style>
+    <Style Selector="TabControl.mainTabs > TabItem:selected">
+      <Setter Property="Foreground" Value="{DynamicResource AppTextBrush}" />
+    </Style>
+    <Style Selector="TabControl.mainTabs > TabItem:selected /template/ Border#PART_SelectedPipe">
+      <Setter Property="Background" Value="{DynamicResource AppPrimaryBrush}" />
+    </Style>
+
     <Style Selector="ToggleButton:checked /template/ ContentPresenter#PART_ContentPresenter">
       <Setter Property="Background" Value="{DynamicResource AppPrimaryBrush}" />
       <Setter Property="Foreground" Value="{DynamicResource AppPrimaryTextBrush}" />
@@ -186,6 +205,10 @@
           <SolidColorBrush x:Key="AppDangerHoverBrush" Color="#B91C1C" />
           <SolidColorBrush x:Key="AppGoodBrush" Color="#16A34A" />
           <SolidColorBrush x:Key="AppDisabledBrush" Color="#DEE4EC" />
+          <SolidColorBrush x:Key="TerminalBackgroundBrush" Color="#FFFFFF" />
+          <SolidColorBrush x:Key="TerminalForegroundBrush" Color="#1C2430" />
+          <SolidColorBrush x:Key="TerminalSelectionBrush" Color="#552563EB" />
+          <SolidColorBrush x:Key="TerminalCursorBrush" Color="#2563EB" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
           <SolidColorBrush x:Key="AppBackgroundBrush" Color="#0C1017" />
@@ -207,6 +230,10 @@
           <SolidColorBrush x:Key="AppDangerHoverBrush" Color="#FB8C8C" />
           <SolidColorBrush x:Key="AppGoodBrush" Color="#4ADE80" />
           <SolidColorBrush x:Key="AppDisabledBrush" Color="#223041" />
+          <SolidColorBrush x:Key="TerminalBackgroundBrush" Color="#0A0E14" />
+          <SolidColorBrush x:Key="TerminalForegroundBrush" Color="#D3DCE6" />
+          <SolidColorBrush x:Key="TerminalSelectionBrush" Color="#664C8FE0" />
+          <SolidColorBrush x:Key="TerminalCursorBrush" Color="#3FBF6F" />
         </ResourceDictionary>
       </ResourceDictionary.ThemeDictionaries>
     </ResourceDictionary>

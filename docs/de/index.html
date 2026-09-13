@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ProtoHydra: portabler TFTP-, FTP-, SFTP-, SCP- und HTTP-Server für Windows</title>
-<meta name="description" content="Kostenloser portabler Dateiserver für Windows. Ein Ordner gleichzeitig über TFTP, FTP, FTPS, SFTP, SCP, HTTP und HTTPS. Ohne Installation, ohne Dienst, eine EXE.">
+<title>ProtoHydra: portabler TFTP-, FTP-, SFTP-, SCP- und HTTP-Server mit serieller Konsole für Windows</title>
+<meta name="description" content="Kostenloser portabler Dateiserver für Windows mit serieller Konsole. Ein Ordner über TFTP, FTP, FTPS, SFTP, SCP, HTTP und HTTPS. Ohne Installation, eine EXE.">
 <link rel="canonical" href="https://thatiscrazy.github.io/ProtoHydra/de/">
 <link rel="alternate" hreflang="en" href="https://thatiscrazy.github.io/ProtoHydra/">
 <link rel="alternate" hreflang="de" href="https://thatiscrazy.github.io/ProtoHydra/de/">
@@ -15,8 +15,8 @@
 <meta property="og:site_name" content="ProtoHydra">
 <meta property="og:locale" content="de_DE">
 <meta property="og:locale:alternate" content="en_US">
-<meta property="og:title" content="ProtoHydra: portabler TFTP-, FTP-, SFTP-, SCP- und HTTP-Server für Windows">
-<meta property="og:description" content="Ein Ordner gleichzeitig über TFTP, FTP, FTPS, SFTP, SCP, HTTP und HTTPS. Ohne Installation, ohne Dienst, eine EXE für Firmware-Updates und PXE-Boot.">
+<meta property="og:title" content="ProtoHydra: portabler TFTP-, FTP-, SFTP-, SCP- und HTTP-Server mit serieller Konsole für Windows">
+<meta property="og:description" content="Ein Ordner gleichzeitig über TFTP, FTP, FTPS, SFTP, SCP, HTTP und HTTPS, dazu die Geräte-Konsole über seriell im selben Fenster.">
 <meta property="og:url" content="https://thatiscrazy.github.io/ProtoHydra/de/">
 <meta property="og:image" content="https://thatiscrazy.github.io/ProtoHydra/screenshot.png">
 <meta property="og:image:alt" content="ProtoHydra unter Windows mit sieben Protokollservern auf einem Ordner und dem Live-Log der Transfers">
@@ -32,11 +32,11 @@
       "@type": "SoftwareApplication",
       "name": "ProtoHydra",
       "alternateName": "ProtoHydra Multi-Protokoll-Dateiserver",
-      "description": "Portabler Multi-Protokoll-Dateiserver für Windows, der einen einzigen Ordner gleichzeitig über TFTP, FTP, FTPS, SFTP, SCP, HTTP und HTTPS bereitstellt, ohne Installation und ohne Windows-Dienst.",
+      "description": "Portabler Multi-Protokoll-Dateiserver für Windows, der einen einzigen Ordner gleichzeitig über TFTP, FTP, FTPS, SFTP, SCP, HTTP und HTTPS bereitstellt, ohne Installation und ohne Windows-Dienst, mit eingebauter serieller Konsole für COM-Ports.",
       "url": "https://thatiscrazy.github.io/ProtoHydra/de/",
       "downloadUrl": "https://github.com/ThatIsCraZy/ProtoHydra/releases/latest",
       "installUrl": "https://github.com/ThatIsCraZy/ProtoHydra/releases/latest",
-      "softwareVersion": "1.6",
+      "softwareVersion": "1.7",
       "applicationCategory": "UtilitiesApplication",
       "applicationSubCategory": "Dateitransfer-Server",
       "operatingSystem": "Windows 10, Windows 11, Windows Server (x64)",
@@ -47,6 +47,7 @@
       "screenshot": "https://thatiscrazy.github.io/ProtoHydra/screenshot.png",
       "featureList": [
         "TFTP-Server", "FTP-Server", "FTPS-Server", "SFTP-Server", "SCP-Server", "HTTP-Server", "HTTPS-Server",
+        "Serielle Konsole für COM-Ports",
         "Portable Einzel-EXE", "Live-Log", "Temporäre Windows-Firewall-Regel", "Argon2id-Benutzerauthentifizierung"
       ],
       "author": { "@type": "Person", "name": "ThatIsCraZy" },
@@ -70,6 +71,8 @@
           "acceptedAnswer": { "@type": "Answer", "text": "Nur für Ports unter 1024 (69, 21, 22, 80, 443). Ohne Adminrechte weichst du im UI auf hohe Ports aus, zum Beispiel 6969, 2121, 2222 oder 8080." } },
         { "@type": "Question", "name": "Funktioniert SCP mit WinSCP und OpenSSH?",
           "acceptedAnswer": { "@type": "Answer", "text": "Ja. Der SCP-Dienst beherrscht klassisches scp -O (Exec-Modus) und den Shell-basierten SCP-Modus von WinSCP. Moderne OpenSSH-Clients nutzen für scp ohne -O intern SFTP, das ebenfalls bereitsteht." } },
+        { "@type": "Question", "name": "Kann ich damit auch auf die serielle Konsole eines Geräts?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Ja. Der Reiter Serial Console öffnet ein VT100/xterm-Terminal auf einen COM-Port, mit Port- und Parameterauswahl per Dropdown, Copy und Paste wie in PuTTY, Break-Taste, Leitungsanzeigen und Sitzungsmitschnitt. Konsolensitzung und Dateitransfer liegen im selben Fenster." } },
         { "@type": "Question", "name": "Gibt es eine Version für Linux oder macOS?",
           "acceptedAnswer": { "@type": "Answer", "text": "Derzeit nicht. Veröffentlicht wird eine self-contained EXE für Windows x64." } },
         { "@type": "Question", "name": "Worin unterscheidet sich ProtoHydra von Tftpd64, FileZilla Server oder OpenSSH für Windows?",
@@ -90,6 +93,7 @@
     <nav>
       <a class="hide-sm" href="#protokolle">Protokolle</a>
       <a class="hide-sm" href="#funktionen">Funktionen</a>
+      <a class="hide-sm" href="#seriell">Seriell</a>
       <a href="#schnellstart">Schnellstart</a>
       <a href="#faq">FAQ</a>
       <a href="https://github.com/ThatIsCraZy/ProtoHydra">GitHub</a>
@@ -102,12 +106,12 @@
 
   <div class="hero">
     <h1>TFTP-, FTP-, FTPS-, SFTP-, SCP-, HTTP- und HTTPS-Server für Windows in einer portablen EXE</h1>
-    <p class="lede"><strong>ProtoHydra stellt einen einzigen Ordner gleichzeitig über sieben Protokolle bereit.</strong> Ohne Installation, ohne Windows-Dienst, ohne .NET-Runtime auf dem Rechner. Gebaut für die Arbeit direkt neben dem Rack: Netzwerkgeräte flashen, Appliances bootstrappen, Gerätekonfigurationen sichern und PXE-Boot-Dateien ausliefern.</p>
+    <p class="lede"><strong>ProtoHydra stellt einen einzigen Ordner gleichzeitig über sieben Protokolle bereit.</strong> Ohne Installation, ohne Windows-Dienst, ohne .NET-Runtime auf dem Rechner. Gebaut für die Arbeit direkt neben dem Rack: Netzwerkgeräte flashen, Appliances bootstrappen, Gerätekonfigurationen sichern und PXE-Boot-Dateien ausliefern. Eine eingebaute serielle Konsole bedient die Geräte-Konsole im selben Fenster.</p>
     <p class="cta">
       <a class="btn" href="https://github.com/ThatIsCraZy/ProtoHydra/releases/latest">ProtoHydra.exe herunterladen</a>
       <a class="btn secondary" href="https://github.com/ThatIsCraZy/ProtoHydra">Quellcode auf GitHub</a>
     </p>
-    <p class="meta">Kostenlos und Open Source (MIT) &middot; Windows x64 &middot; self-contained, kein .NET nötig &middot; aktuelle Version v1.6</p>
+    <p class="meta">Kostenlos und Open Source (MIT) &middot; Windows x64 &middot; self-contained, kein .NET nötig &middot; aktuelle Version v1.7</p>
 
     <figure>
       <img src="../screenshot.png" width="2560" height="1640"
@@ -185,6 +189,19 @@
     </ul>
   </section>
 
+  <section id="seriell">
+    <h2>Serielle Konsole für COM-Ports</h2>
+    <p class="sub">Geräte-Konsole und Dateitransfer im selben Fenster.</p>
+    <ul class="feat">
+      <li><b>Port-Auswahl mit Gerätenamen</b> aus der Windows-Gerätedatenbank, also <code>COM7 &mdash; USB Serial Port</code> statt blanker Nummer.</li>
+      <li><b>Parameter per Dropdown</b>: Baudrate 300 bis 921600, Datenbits, Parität, Stoppbits, Flusssteuerung und die Enter-Sequenz (CR, LF, CR LF).</li>
+      <li><b>Copy &amp; Paste wie in PuTTY</b>: Markieren kopiert, Rechtsklick fügt ein, dazu <code>Ctrl+Shift+C</code> und <code>Ctrl+Shift+V</code>.</li>
+      <li><b>VT100/xterm-Emulation</b> mit Farben, Cursorsteuerung, Alternate Screen und 5000 Zeilen Scrollback.</li>
+      <li><b>Break-Taste</b> hält die Leitung 300 ms im Break-Zustand, der Interrupt, auf den ROM-Monitore und Bootloader warten.</li>
+      <li><b>Leitungsanzeigen</b> für CTS, DSR, DCD, DTR und RTS, RX- und TX-Zähler sowie ein Sitzungsmitschnitt neben den übrigen Logs.</li>
+    </ul>
+  </section>
+
   <section id="schnellstart">
     <h2>Schnellstart</h2>
     <ol class="steps">
@@ -248,6 +265,10 @@ copy running-config tftp:</code></pre>
     <details>
       <summary>Funktioniert SCP mit WinSCP und OpenSSH?</summary>
       <p class="answer">Ja. Der SCP-Dienst beherrscht klassisches <code>scp -O</code> (Exec-Modus) und den Shell-basierten SCP-Modus von WinSCP. Moderne OpenSSH-Clients nutzen für <code>scp</code> ohne <code>-O</code> intern SFTP, das ebenfalls bereitsteht.</p>
+    </details>
+    <details>
+      <summary>Kann ich damit auch auf die serielle Konsole eines Geräts?</summary>
+      <p class="answer">Ja. Der Reiter <b>Serial Console</b> öffnet ein VT100/xterm-Terminal auf einen COM-Port, mit Port- und Parameterauswahl per Dropdown, Copy und Paste wie in PuTTY, Break-Taste, Leitungsanzeigen und Sitzungsmitschnitt. Konsolensitzung und Dateitransfer liegen im selben Fenster.</p>
     </details>
     <details>
       <summary>Gibt es eine Version für Linux oder macOS?</summary>

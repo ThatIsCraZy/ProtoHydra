@@ -6,6 +6,7 @@ using DataService.Core.Diagnostics;
 using DataService.Core.Events;
 using DataService.Infrastructure.Certificates;
 using DataService.Infrastructure.Firewall;
+using DataService.Infrastructure.Serial;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using DataService.Protocols.Abstractions;
@@ -49,6 +50,10 @@ internal static class Program
                 services.AddSingleton<ICertificateManager, CertificateManager>();
                 services.AddSingleton<IFirewallStatusService, WindowsFirewallStatusService>();
                 services.AddSingleton<IFirewallTemporaryRuleService, WindowsTemporaryFirewallRuleService>();
+                services.AddSingleton<ISerialPortEnumerator, WindowsSerialPortEnumerator>();
+                services.AddSingleton<ISerialConsoleSession, SerialConsoleSession>();
+                services.AddSingleton<SerialConsoleSettingsStore>();
+                services.AddSingleton<SerialConsoleViewModel>();
                 services.AddSingleton<IProtocolAdapter>(serviceProvider => new HttpFileServerAdapter(
                     ProtocolKind.Http,
                     serviceProvider.GetRequiredService<ITransferEventBus>(),

@@ -1,0 +1,241 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:DataService.App.ViewModels"
+             xmlns:controls="using:DataService.App.Controls"
+             xmlns:serial="using:DataService.Infrastructure.Serial"
+             x:Class="DataService.App.Views.SerialConsoleView"
+             x:DataType="vm:SerialConsoleViewModel">
+  <UserControl.Styles>
+    <!-- Modem-Leitungsanzeigen: grau, solange die Leitung low ist -->
+    <Style Selector="Border.signal">
+      <Setter Property="Background" Value="{DynamicResource AppDisabledBrush}" />
+      <Setter Property="CornerRadius" Value="999" />
+      <Setter Property="Padding" Value="7,2" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Border.signal > TextBlock">
+      <Setter Property="FontSize" Value="10" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{DynamicResource AppMutedTextBrush}" />
+    </Style>
+    <Style Selector="Border.signal.on">
+      <Setter Property="Background" Value="{DynamicResource AppGoodBrush}" />
+    </Style>
+    <Style Selector="Border.signal.on > TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource AppInverseTextBrush}" />
+    </Style>
+    <Style Selector="Button.toolbar">
+      <Setter Property="MinHeight" Value="26" />
+      <Setter Property="Padding" Value="10,3" />
+      <Setter Property="FontSize" Value="11" />
+    </Style>
+    <Style Selector="Button.toolbar.logging">
+      <Setter Property="Background" Value="{DynamicResource AppDangerBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource AppPrimaryTextBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AppDangerBrush}" />
+    </Style>
+    <Style Selector="StackPanel.field > TextBlock">
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="Foreground" Value="{DynamicResource AppMutedTextBrush}" />
+    </Style>
+  </UserControl.Styles>
+
+  <Grid RowDefinitions="Auto,*" RowSpacing="12">
+    <Border Classes="card" Padding="14,12">
+      <Grid RowDefinitions="Auto,Auto" RowSpacing="10">
+        <Grid ColumnDefinitions="*,Auto,140,Auto,132" ColumnSpacing="10">
+          <StackPanel Classes="field" Spacing="3">
+            <TextBlock Text="Serial port" />
+            <ComboBox ItemsSource="{Binding AvailablePorts}"
+                      SelectedItem="{Binding SelectedPort}"
+                      IsEnabled="{Binding CanEditParameters}"
+                      HorizontalAlignment="Stretch"
+                      DisplayMemberBinding="{Binding DisplayName, DataType=serial:SerialPortDescriptor}"
+                      PlaceholderText="No serial ports found" />
+          </StackPanel>
+
+          <StackPanel Grid.Column="1" Classes="field" Spacing="3">
+            <TextBlock Text="&#160;" />
+            <Button Content="&#x21BB;"
+                    Command="{Binding RefreshPortsCommand}"
+                    IsEnabled="{Binding CanEditParameters}"
+                    MinWidth="38"
+                    FontSize="15"
+                    ToolTip.Tip="Rescan the serial ports present on this machine" />
+          </StackPanel>
+
+          <StackPanel Grid.Column="2" Classes="field" Spacing="3">
+            <TextBlock Text="Speed (baud)" />
+            <ComboBox ItemsSource="{Binding BaudRateOptions}"
+                      SelectedItem="{Binding SelectedBaudRate}"
+                      IsEnabled="{Binding CanEditParameters}"
+                      HorizontalAlignment="Stretch" />
+          </StackPanel>
+
+          <StackPanel Grid.Column="3" Classes="field" Spacing="3" VerticalAlignment="Bottom">
+            <TextBlock Text="&#160;" />
+            <CheckBox Content="Local echo"
+                      IsChecked="{Binding LocalEcho}"
+                      ToolTip.Tip="Show what you type. Devices that echo themselves need this off." />
+          </StackPanel>
+
+          <StackPanel Grid.Column="4" Classes="field" Spacing="3">
+            <TextBlock Text="&#160;" />
+            <Button Content="{Binding ConnectButtonText}"
+                    Command="{Binding ConnectCommand}"
+                    Classes.primary="{Binding !IsConnected}"
+                    Classes.danger="{Binding IsConnected}"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Center" />
+          </StackPanel>
+        </Grid>
+
+        <Grid Grid.Row="1" ColumnDefinitions="96,110,96,190,110,*" ColumnSpacing="10">
+          <StackPanel Classes="field" Spacing="3">
+            <TextBlock Text="Data bits" />
+            <ComboBox ItemsSource="{Binding DataBitsOptions}"
+                      SelectedItem="{Binding SelectedDataBits}"
+                      IsEnabled="{Binding CanEditParameters}"
+                      HorizontalAlignment="Stretch" />
+          </StackPanel>
+
+          <StackPanel Grid.Column="1" Classes="field" Spacing="3">
+            <TextBlock Text="Parity" />
+            <ComboBox ItemsSource="{Binding ParityOptions}"
+                      SelectedItem="{Binding SelectedParity}"
+                      IsEnabled="{Binding CanEditParameters}"
+                      HorizontalAlignment="Stretch" />
+          </StackPanel>
+
+          <StackPanel Grid.Column="2" Classes="field" Spacing="3">
+            <TextBlock Text="Stop bits" />
+            <ComboBox ItemsSource="{Binding StopBitsOptions}"
+                      SelectedItem="{Binding SelectedStopBits}"
+                      IsEnabled="{Binding CanEditParameters}"
+                      HorizontalAlignment="Stretch" />
+          </StackPanel>
+
+          <StackPanel Grid.Column="3" Classes="field" Spacing="3">
+            <TextBlock Text="Flow control" />
+            <ComboBox ItemsSource="{Binding FlowControlOptions}"
+                      SelectedItem="{Binding SelectedFlowControl}"
+                      IsEnabled="{Binding CanEditParameters}"
+                      HorizontalAlignment="Stretch" />
+          </StackPanel>
+
+          <StackPanel Grid.Column="4" Classes="field" Spacing="3">
+            <TextBlock Text="Enter sends" />
+            <ComboBox ItemsSource="{Binding NewLineOptions}"
+                      SelectedItem="{Binding SelectedNewLine}"
+                      HorizontalAlignment="Stretch"
+                      ToolTip.Tip="Most network devices expect CR." />
+          </StackPanel>
+
+          <!-- Hoehe der ComboBox, damit die Statuszeile auf deren Mitte sitzt -->
+          <Grid Grid.Column="5" Height="30" VerticalAlignment="Bottom">
+            <TextBlock Text="{Binding StatusText}"
+                       FontSize="12"
+                       VerticalAlignment="Center"
+                       TextTrimming="CharacterEllipsis" />
+          </Grid>
+        </Grid>
+      </Grid>
+    </Border>
+
+    <Border Grid.Row="1" Classes="card" Padding="0" ClipToBounds="True">
+      <Grid RowDefinitions="Auto,*">
+        <Border Background="{DynamicResource AppPanelAltBrush}" CornerRadius="10,10,0,0">
+          <Grid ColumnDefinitions="Auto,Auto,*,Auto" MinHeight="40">
+            <StackPanel Orientation="Horizontal"
+                        Spacing="8"
+                        Margin="14,0,10,0"
+                        VerticalAlignment="Center">
+              <Ellipse Width="9" Height="9" Fill="{Binding StatusBrush}" VerticalAlignment="Center" />
+              <TextBlock Text="{Binding ConnectionSummary}"
+                         FontSize="12"
+                         FontWeight="SemiBold"
+                         VerticalAlignment="Center" />
+              <TextBlock Text="{Binding RemoteTitle}"
+                         Classes="caption"
+                         MaxWidth="260"
+                         VerticalAlignment="Center"
+                         TextTrimming="CharacterEllipsis"
+                         ToolTip.Tip="Title the device reported over the console" />
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
+              <Border Classes="signal" Classes.on="{Binding ClearToSend}" ToolTip.Tip="Clear To Send">
+                <TextBlock Text="CTS" />
+              </Border>
+              <Border Classes="signal" Classes.on="{Binding DataSetReady}" ToolTip.Tip="Data Set Ready">
+                <TextBlock Text="DSR" />
+              </Border>
+              <Border Classes="signal" Classes.on="{Binding CarrierDetect}" ToolTip.Tip="Data Carrier Detect">
+                <TextBlock Text="DCD" />
+              </Border>
+              <Border Classes="signal" Classes.on="{Binding DataTerminalReady}" ToolTip.Tip="Data Terminal Ready">
+                <TextBlock Text="DTR" />
+              </Border>
+              <Border Classes="signal" Classes.on="{Binding RequestToSend}" ToolTip.Tip="Request To Send">
+                <TextBlock Text="RTS" />
+              </Border>
+            </StackPanel>
+
+            <TextBlock Grid.Column="2"
+                       Text="{Binding TrafficText}"
+                       Classes="caption"
+                       VerticalAlignment="Center"
+                       HorizontalAlignment="Right"
+                       Margin="12,0" />
+
+            <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="6" Margin="0,5,10,5">
+              <Button Content="DTR" Command="{Binding ToggleDataTerminalReadyCommand}" Classes="toolbar"
+                      ToolTip.Tip="Toggle the DTR line" />
+              <Button Content="RTS" Command="{Binding ToggleRequestToSendCommand}" Classes="toolbar"
+                      ToolTip.Tip="Toggle the RTS line" />
+              <Button Content="Break" Command="{Binding SendBreakCommand}" Classes="toolbar"
+                      ToolTip.Tip="Hold the line in break state for 300 ms — the interrupt bootloaders listen for" />
+              <Button Content="A-" Command="{Binding DecreaseFontSizeCommand}" Classes="toolbar" />
+              <Button Content="A+" Command="{Binding IncreaseFontSizeCommand}" Classes="toolbar" />
+              <Button Content="Copy all" Command="{Binding CopyAllCommand}" Classes="toolbar"
+                      ToolTip.Tip="Copy the whole buffer including scrollback" />
+              <Button Content="Clear"
+                      Command="{Binding ClearCommand}"
+                      Classes="toolbar"
+                      ToolTip.Tip="Clear the screen and the scrollback" />
+              <Button Content="Reset"
+                      Command="{Binding ResetTerminalCommand}"
+                      Classes="toolbar"
+                      ToolTip.Tip="Full terminal reset — also drops modes a device left behind, such as an alternate screen" />
+              <Button Content="{Binding LogButtonText}"
+                      Command="{Binding ToggleLoggingCommand}"
+                      Classes="toolbar"
+                      Classes.logging="{Binding IsLogging}"
+                      ToolTip.Tip="{Binding LogStatusText}" />
+            </StackPanel>
+          </Grid>
+        </Border>
+
+        <Grid Grid.Row="1" ColumnDefinitions="*,Auto">
+          <controls:TerminalControl x:Name="Terminal"
+                                    Screen="{Binding Screen}"
+                                    TerminalFontSize="{Binding FontSize}"
+                                    NewLineSequence="{Binding NewLineSequence}"
+                                    TerminalBackground="{DynamicResource TerminalBackgroundBrush}"
+                                    TerminalForeground="{DynamicResource TerminalForegroundBrush}"
+                                    SelectionBrush="{DynamicResource TerminalSelectionBrush}"
+                                    CursorBrush="{DynamicResource TerminalCursorBrush}" />
+          <ScrollBar Grid.Column="1"
+                     Orientation="Vertical"
+                     AllowAutoHide="False"
+                     Minimum="0"
+                     Maximum="{Binding #Terminal.ScrollMaximum}"
+                     ViewportSize="{Binding #Terminal.ViewportLines}"
+                     Value="{Binding #Terminal.ScrollOffset, Mode=TwoWay}"
+                     SmallChange="1"
+                     LargeChange="{Binding #Terminal.ViewportLines}" />
+        </Grid>
+      </Grid>
+    </Border>
+  </Grid>
+</UserControl>
