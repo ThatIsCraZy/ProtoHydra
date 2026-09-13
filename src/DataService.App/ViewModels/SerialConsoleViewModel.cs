@@ -21,6 +21,13 @@ public sealed class SerialConsoleViewModel : ObservableObject, IDisposable
     private static readonly TimeSpan StatusInterval = TimeSpan.FromMilliseconds(500);
     private static readonly TimeSpan BreakDuration = TimeSpan.FromMilliseconds(300);
 
+    /// <summary>
+    /// Ceiling for data waiting to reach the screen. At 921600 baud this is roughly ten
+    /// seconds of backlog; beyond that the UI thread is not keeping up and the oldest
+    /// bytes are dropped, which is what the scrollback would do to them anyway.
+    /// </summary>
+    private const int MaxPendingCharacters = 1_000_000;
+
     private readonly ISerialPortEnumerator _portEnumerator;
     private readonly ISerialConsoleSession _session;
     private readonly SerialConsoleSettingsStore _settingsStore;
@@ -392,7 +399,9 @@ public sealed class SerialConsoleViewModel : ObservableObject, IDisposable
             SelectedStopBits.Value,
             SelectedFlowControl.Value);
 
-    private async Task RefreshPortsAsync()
+    private Task RefreshPortsAsync() => RefreshPortsAsync(announce: true);
+
+    private async Task RefreshPortsAsync(bool announce)
     {
         IReadOnlyList<SerialPortDescriptor> ports;
         try
@@ -401,7 +410,11 @@ public sealed class SerialConsoleViewModel : ObservableObject, IDisposable
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
-            StatusText = $"Port list unavailable: {exception.Message}";
+            if (announce)
+            {
+                StatusText = $"Port list unavailable: {exception.Message}";
+            }
+
             return;
         }
 
@@ -416,7 +429,7 @@ public sealed class SerialConsoleViewModel : ObservableObject, IDisposable
                 port => StringComparer.OrdinalIgnoreCase.Equals(port.PortName, previous))
             ?? AvailablePorts.FirstOrDefault();
 
-        if (!IsConnected)
+        if (announce && !IsConnected)
         {
             StatusText = AvailablePorts.Count == 0
                 ? "No serial ports found"
@@ -547,6 +560,10 @@ public sealed class SerialConsoleViewModel : ObservableObject, IDisposable
         lock (_pendingGate)
         {
             _pending.Append(text);
+            if (_pending.Length > MaxPendingCharacters)
+            {
+                _pending.Remove(0, _pending.Length - MaxPendingCharacters);
+            }
         }
 
         AppendToLog(text);
@@ -564,6 +581,11 @@ public sealed class SerialConsoleViewModel : ObservableObject, IDisposable
             NotifyLineStatus();
             StatusText = $"Connection lost: {message}";
             WriteBanner($"Connection lost — {message}", isError: true);
+
+            // A pulled adapter disappears from the port list, and Windows may hand it a
+            // different COM number when it comes back, so the list is rescanned instead of
+            // leaving a stale entry selected.
+            _ = RefreshPortsAsync(announce: false);
         });
 
     private void FlushPending()

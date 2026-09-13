@@ -11,6 +11,18 @@ public sealed class SerialConsoleSession : ISerialConsoleSession
 {
     private const int ReadBufferSize = 8 * 1024;
 
+    /// <summary>
+    /// How long <see cref="Open"/> waits for a previous close to hand the handle back.
+    /// Long enough for a driver that is merely slow, short enough that a wedged one does
+    /// not hold the reconnect hostage.
+    /// </summary>
+    private static readonly TimeSpan HandleReleaseTimeout = TimeSpan.FromSeconds(3);
+
+    /// <summary>Attempts and spacing for <see cref="OpenPort"/>, so up to half a second.</summary>
+    private const int OpenAttempts = 10;
+
+    private static readonly TimeSpan OpenRetryDelay = TimeSpan.FromMilliseconds(50);
+
     private readonly object _gate = new();
 
     private SerialPort? _port;
@@ -18,6 +30,7 @@ public sealed class SerialConsoleSession : ISerialConsoleSession
     private Channel<ReadOnlyMemory<byte>>? _outbound;
     private Task? _readLoop;
     private Task? _writeLoop;
+    private Task _handleRelease = Task.CompletedTask;
     private int _faultReported;
     private long _bytesReceived;
     private long _bytesSent;
@@ -54,24 +67,15 @@ public sealed class SerialConsoleSession : ISerialConsoleSession
                 throw new InvalidOperationException("The session already holds an open port.");
             }
 
-            var port = new SerialPort(
-                settings.PortName,
-                settings.BaudRate,
-                MapParity(settings.Parity),
-                settings.DataBits,
-                MapStopBits(settings.StopBits))
-            {
-                Handshake = MapHandshake(settings.FlowControl),
-                ReadTimeout = SerialPort.InfiniteTimeout,
-                WriteTimeout = 5_000,
-                ReadBufferSize = 64 * 1024,
-                WriteBufferSize = 16 * 1024,
-                DiscardNull = false
-            };
+            // Close releases the handle on a background thread so a dead device cannot
+            // freeze the caller. Opening again before that finished would hit our own
+            // still-open handle and report the port as taken by another application.
+            _handleRelease.Wait(HandleReleaseTimeout);
+
+            var port = OpenPort(settings);
 
             try
             {
-                port.Open();
                 port.DtrEnable = settings.DataTerminalReady;
 
                 // The driver owns RTS while hardware handshaking is on; writing it then throws.
@@ -104,6 +108,50 @@ public sealed class SerialConsoleSession : ISerialConsoleSession
             var token = _lifetime.Token;
             _readLoop = Task.Run(() => ReadLoopAsync(stream, token), CancellationToken.None);
             _writeLoop = Task.Run(() => WriteLoopAsync(stream, _outbound.Reader, token), CancellationToken.None);
+        }
+    }
+
+    /// <summary>
+    /// Opens the port, retrying briefly while the driver reports it as denied. Measured on
+    /// a virtual COM port, the handle stays busy for roughly one backoff after our own
+    /// close returned, which would otherwise turn every quick reconnect into "port in use".
+    /// A port genuinely held by another application only costs this budget before the same
+    /// error surfaces.
+    /// </summary>
+    private static SerialPort OpenPort(SerialConnectionSettings settings)
+    {
+        for (var attempt = 1; ; attempt++)
+        {
+            var port = new SerialPort(
+                settings.PortName,
+                settings.BaudRate,
+                MapParity(settings.Parity),
+                settings.DataBits,
+                MapStopBits(settings.StopBits))
+            {
+                Handshake = MapHandshake(settings.FlowControl),
+                ReadTimeout = SerialPort.InfiniteTimeout,
+                WriteTimeout = 5_000,
+                ReadBufferSize = 64 * 1024,
+                WriteBufferSize = 16 * 1024,
+                DiscardNull = false
+            };
+
+            try
+            {
+                port.Open();
+                return port;
+            }
+            catch (UnauthorizedAccessException) when (attempt < OpenAttempts)
+            {
+                port.Dispose();
+                Thread.Sleep(OpenRetryDelay);
+            }
+            catch
+            {
+                port.Dispose();
+                throw;
+            }
         }
     }
 
@@ -203,6 +251,10 @@ public sealed class SerialConsoleSession : ISerialConsoleSession
         }
         catch (Exception exception) when (IsTransportFailure(exception))
         {
+            // Reading the modem lines is the only traffic that flows while a device sits
+            // idle. If that fails the port is gone, and a pending read may never return to
+            // tell us, so this poll is what turns an unplugged adapter into a disconnect.
+            ReportFault(exception);
             return SerialLineStatus.None;
         }
     }
@@ -212,6 +264,7 @@ public sealed class SerialConsoleSession : ISerialConsoleSession
         SerialPort? port;
         CancellationTokenSource? lifetime;
         Channel<ReadOnlyMemory<byte>>? outbound;
+        TaskCompletionSource released;
 
         lock (_gate)
         {
@@ -223,11 +276,16 @@ public sealed class SerialConsoleSession : ISerialConsoleSession
             _outbound = null;
             _readLoop = null;
             _writeLoop = null;
-        }
 
-        if (port is null)
-        {
-            return;
+            if (port is null)
+            {
+                return;
+            }
+
+            // Published while the gate is held, so an Open racing this Close can never
+            // slip past an already completed task from an earlier session.
+            released = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            _handleRelease = released.Task;
         }
 
         outbound?.Writer.TryComplete();
@@ -241,18 +299,23 @@ public sealed class SerialConsoleSession : ISerialConsoleSession
 
         // Disposing a SerialPort whose USB adapter was pulled can block for seconds, so
         // it happens off the caller's thread; the UI reports the port as closed at once.
+        // Open waits on this task, so a reconnect still sees a released handle.
         _ = Task.Run(() =>
         {
             try
             {
                 port.Dispose();
             }
-            catch (Exception exception) when (IsTransportFailure(exception))
+            catch (Exception)
             {
+                // Closing the handle of a device that is already gone can fail in ways the
+                // driver decides. Nothing useful is left to do, and this runs detached, so
+                // an escaping exception would only surface as an unobserved task fault.
             }
             finally
             {
                 lifetime?.Dispose();
+                released.TrySetResult();
             }
         });
 
@@ -298,7 +361,15 @@ public sealed class SerialConsoleSession : ISerialConsoleSession
                 var read = await stream.ReadAsync(buffer, cancellationToken).ConfigureAwait(false);
                 if (read <= 0)
                 {
-                    continue;
+                    // A serial stream with an infinite read timeout blocks until a byte
+                    // arrives, so zero means the handle is gone: the adapter was pulled or
+                    // the driver died. Spinning here would burn a core instead of saying so.
+                    if (!cancellationToken.IsCancellationRequested)
+                    {
+                        ReportFault(new IOException("The serial port stopped delivering data."));
+                    }
+
+                    return;
                 }
 
                 Interlocked.Add(ref _bytesReceived, read);
@@ -371,6 +442,7 @@ public sealed class SerialConsoleSession : ISerialConsoleSession
         => exception is IOException
             or UnauthorizedAccessException
             or InvalidOperationException
+            or ObjectDisposedException
             or TimeoutException
             or ArgumentException;
 

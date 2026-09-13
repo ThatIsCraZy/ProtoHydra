@@ -20,6 +20,12 @@ public sealed class TerminalScreen
 
     private const int TabWidth = 8;
 
+    /// <summary>
+    /// Upper bound on CSI parameters. ECMA-48 allows 16 and xterm keeps 30; a device stuck
+    /// in a loop must not be able to grow this list until memory runs out.
+    /// </summary>
+    private const int MaxParameters = 32;
+
     private readonly TerminalLine?[] _scrollback;
     private readonly List<int> _parameters = new();
     private readonly StringBuilder _stringBuffer = new();
@@ -48,6 +54,7 @@ public sealed class TerminalScreen
     private ParserState _state = ParserState.Ground;
     private int _parameterValue = -1;
     private char _privateMarker;
+    private char _pendingHighSurrogate;
 
     public TerminalScreen(int columns = 80, int rows = 24, int scrollbackLines = DefaultScrollbackLines)
     {
@@ -202,6 +209,7 @@ public sealed class TerminalScreen
         _parameters.Clear();
         _parameterValue = -1;
         _privateMarker = '\0';
+        _pendingHighSurrogate = '\0';
         _stringBuffer.Clear();
         Revision++;
         Changed?.Invoke(this, EventArgs.Empty);
@@ -344,12 +352,27 @@ public sealed class TerminalScreen
 
     private void Process(char character)
     {
+        // CAN and SUB abort whatever sequence is in flight, from any state. Without this a
+        // device that dies mid-sequence leaves the parser waiting for a final byte and
+        // swallowing everything that follows it.
+        if (character is '\x18' or '\x1a')
+        {
+            AbortSequence();
+            return;
+        }
+
         switch (_state)
         {
             case ParserState.Ground:
                 if (character < 0x20 || character == 0x7F)
                 {
                     ExecuteControl(character);
+                }
+                else if (character is >= '\u0080' and <= '\u009f')
+                {
+                    // C1 controls have no glyph. In UTF-8 mode xterm does not act on them
+                    // either, and a device dumping binary produces them by the hundred, so
+                    // they are dropped rather than drawn as boxes.
                 }
                 else
                 {
@@ -397,6 +420,15 @@ public sealed class TerminalScreen
         }
     }
 
+    private void AbortSequence()
+    {
+        _state = ParserState.Ground;
+        _parameters.Clear();
+        _parameterValue = -1;
+        _privateMarker = '\0';
+        _stringBuffer.Clear();
+    }
+
     private void ExecuteControl(char character)
     {
         switch (character)
@@ -432,6 +464,26 @@ public sealed class TerminalScreen
 
     private void Print(char character)
     {
+        // The grid holds one UTF-16 unit per cell, so an astral character would otherwise
+        // take two cells and render as two pieces of garbage. One replacement glyph per
+        // code point keeps the column count honest.
+        if (char.IsHighSurrogate(character))
+        {
+            _pendingHighSurrogate = character;
+            return;
+        }
+
+        if (char.IsLowSurrogate(character))
+        {
+            _pendingHighSurrogate = '\0';
+            character = '\ufffd';
+        }
+        else if (_pendingHighSurrogate != '\0')
+        {
+            _pendingHighSurrogate = '\0';
+            Print('\ufffd');
+        }
+
         if (_pendingWrap)
         {
             CursorColumn = 0;
@@ -525,6 +577,11 @@ public sealed class TerminalScreen
 
     private void HandleEscape(char character)
     {
+        if (character == '\x7f')
+        {
+            return;
+        }
+
         switch (character)
         {
             case '[':
@@ -591,8 +648,7 @@ public sealed class TerminalScreen
         // common colour forms working without a full sub-parameter model.
         if (character is ';' or ':')
         {
-            _parameters.Add(_parameterValue);
-            _parameterValue = -1;
+            AddParameter();
             return;
         }
 
@@ -608,8 +664,12 @@ public sealed class TerminalScreen
             return;
         }
 
-        _parameters.Add(_parameterValue);
-        _parameterValue = -1;
+        if (character == '\x7f')
+        {
+            return;
+        }
+
+        AddParameter();
         DispatchCsi(character);
         _parameters.Clear();
         _privateMarker = '\0';
@@ -653,6 +713,16 @@ public sealed class TerminalScreen
         {
             TitleChanged?.Invoke(this, payload[(separator + 1)..]);
         }
+    }
+
+    private void AddParameter()
+    {
+        if (_parameters.Count < MaxParameters)
+        {
+            _parameters.Add(_parameterValue);
+        }
+
+        _parameterValue = -1;
     }
 
     private int Parameter(int index, int defaultValue)
