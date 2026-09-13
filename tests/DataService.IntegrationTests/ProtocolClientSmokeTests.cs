@@ -303,7 +303,7 @@ public sealed class ProtocolClientSmokeTests
         await adapter.StartAsync(new ProtocolConfiguration("127.0.0.1", port, rootPath, Enabled: true), CancellationToken.None);
         try
         {
-            using var client = new ScpClient("127.0.0.1", port, "any-user", "any-password");
+            using var client = new ScpClient("127.0.0.1", port, "any-user", "any-password", RemotePathTransformation.ShellQuote);
             client.Connect();
 
             using var output = new MemoryStream();
@@ -321,7 +321,7 @@ public sealed class ProtocolClientSmokeTests
             var preservedTime = new DateTime(2024, 02, 03, 04, 05, 06, DateTimeKind.Utc);
             File.SetLastWriteTimeUtc(Path.Combine(sourceDirectory, "child", "child-file.txt"), preservedTime);
 
-            using var sourceClient = new ScpClient("127.0.0.1", port, "any-user", "any-password");
+            using var sourceClient = new ScpClient("127.0.0.1", port, "any-user", "any-password", RemotePathTransformation.ShellQuote);
             sourceClient.Connect();
             Directory.CreateDirectory(Path.Combine(rootPath, "uploaded-tree"));
             try
@@ -834,7 +834,7 @@ public sealed class ProtocolClientSmokeTests
                 Assert.Equal("shared-sftp-ok", Encoding.UTF8.GetString(output.ToArray()));
             }
 
-            using (var scpClient = new ScpClient("127.0.0.1", port, "any-user", "any-password"))
+            using (var scpClient = new ScpClient("127.0.0.1", port, "any-user", "any-password", RemotePathTransformation.ShellQuote))
             {
                 scpClient.Connect();
 
