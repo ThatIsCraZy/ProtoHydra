@@ -16,6 +16,12 @@ public sealed class RootPathResolverTests : IDisposable
     [InlineData("firmware/image.iso", "firmware/image.iso")]
     [InlineData("/firmware/image.iso", "firmware/image.iso")]
     [InlineData("folder%20name/file.txt", "folder name/file.txt")]
+    [InlineData(".", "")]
+    [InlineData("/.", "")]
+    [InlineData("/./", "")]
+    [InlineData("./firmware/./image.iso", "firmware/image.iso")]
+    [InlineData("/firmware/./image.iso", "firmware/image.iso")]
+    [InlineData("/%2e/firmware/image.iso", "firmware/image.iso")]
     public void ResolveClientPath_ReturnsPathInsideRoot(string clientPath, string expectedRelativePath)
     {
         var resolved = new RootPathResolver(_rootPath).ResolveClientPath(clientPath);
@@ -32,6 +38,10 @@ public sealed class RootPathResolverTests : IDisposable
     [InlineData("//server/share/file.txt")]
     [InlineData("folder\\file.txt")]
     [InlineData("folder/file.txt%00")]
+    [InlineData("/./../secret.txt")]
+    [InlineData("./folder/../../secret.txt")]
+    [InlineData("/./%2e%2e/secret.txt")]
+    [InlineData("/./%252e%252e%252fsecret.txt")]
     public void ResolveClientPath_BlocksRootEscapeInputs(string clientPath)
     {
         var resolver = new RootPathResolver(_rootPath);

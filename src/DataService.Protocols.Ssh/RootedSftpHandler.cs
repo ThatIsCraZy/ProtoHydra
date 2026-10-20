@@ -694,7 +694,8 @@ internal sealed class RootedSftpHandler : ISFTPHandler
             return "";
         }
 
-        return path.TrimStart('/');
+        // Preserve the leading slash(es) so the common resolver can reject UNC paths.
+        return path;
     }
 
     private static SFTPAttributes ToAttributes(string fullPath)

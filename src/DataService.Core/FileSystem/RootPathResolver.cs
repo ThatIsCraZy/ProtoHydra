@@ -109,7 +109,14 @@ public sealed partial class RootPathResolver
 
         foreach (var segment in trimmed.Split('/', StringSplitOptions.RemoveEmptyEntries))
         {
-            if (segment is "." or "..")
+            // A single dot names the current directory (e.g. SFTP REALPATH "/.").
+            // Remove it before filesystem access, while rejecting every parent segment.
+            if (segment == ".")
+            {
+                continue;
+            }
+
+            if (segment == "..")
             {
                 throw new PathResolutionException("Relative path traversal is not allowed.");
             }

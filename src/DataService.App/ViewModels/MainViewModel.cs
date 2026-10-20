@@ -387,7 +387,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             adapter is null ? ProtocolRuntimeState.Unavailable : ProtocolRuntimeState.Stopped,
             adapter is null ? detail : detail,
             adapter,
-            frontend => new ProtocolConfiguration(frontend.BindAddress, frontend.Port, RootPath, Enabled: true));
+            frontend => new ProtocolConfiguration(frontend.BindAddress, frontend.Port, RootPath, Enabled: true)
+            {
+                FtpPassivePortRange = _configuration.Protocols.FtpPassivePortRange
+            });
     }
 
     private void SynchronizeSharedSshEndpoint(
@@ -636,11 +639,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private FirewallPortProbe[] BuildFirewallProbes()
         => Frontends
             .Where(frontend => frontend.IsAvailable)
-            .Select(frontend => new FirewallPortProbe(
-                frontend.ProtocolText,
+            .SelectMany(frontend => FirewallProbeFactory.Create(
+                frontend.Protocol,
+                frontend.BindAddress,
                 frontend.Port,
-                frontend.Protocol == ProtocolKind.Tftp ? FirewallTransportProtocol.Udp : FirewallTransportProtocol.Tcp,
-                frontend.BindAddress))
+                _configuration.Protocols.FtpPassivePortRange))
             .GroupBy(probe => $"{probe.TransportProtocol}:{probe.BindAddress}:{probe.Port}", StringComparer.OrdinalIgnoreCase)
             .Select(group => group.First())
             .ToArray();

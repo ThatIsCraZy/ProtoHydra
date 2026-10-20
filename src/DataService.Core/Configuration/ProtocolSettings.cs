@@ -16,7 +16,7 @@ public sealed record ProtocolSettings
 
     public ProtocolEndpointSettings Https { get; init; } = new() { Port = 443 };
 
-    public string FtpPassivePortRange { get; init; } = "50000-50100";
+    public string FtpPassivePortRange { get; init; } = Configuration.FtpPassivePortRange.Default;
 
     public static ProtocolSettings CreateDefaults() => new();
 }

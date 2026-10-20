@@ -1,3 +1,4 @@
+using DataService.Core.Events;
 using DataService.Infrastructure.Firewall;
 
 namespace DataService.Core.Tests.Infrastructure;
@@ -5,6 +6,38 @@ namespace DataService.Core.Tests.Infrastructure;
 public sealed class FirewallPolicyEvaluatorTests
 {
     private const string ExecutablePath = @"C:\Apps\ProtoHydra\app.exe";
+
+    [Fact]
+    public void Evaluate_FtpControlAllowed_ButPassivePortsBlocked_DoesNotReportAllPortsOpen()
+    {
+        var targets = FirewallProbeFactory.Create(ProtocolKind.Ftp, "0.0.0.0", 21, "50000-50100")
+            .Select(probe => new FirewallProbeTarget(probe, false, FirewallProfile.Private))
+            .ToArray();
+        var policy = Policy([Profile(FirewallProfile.Private)],
+            rules: AllowRule(profiles: (int)FirewallProfile.Private, protocol: 6, localPorts: "21"));
+
+        var snapshot = FirewallPolicyEvaluator.Evaluate(ExecutablePath, targets, policy);
+
+        Assert.Equal(FirewallStatusLevel.Yellow, snapshot.Level);
+        Assert.True(snapshot.Ports[0].IsAllowed);
+        Assert.All(snapshot.Ports.Skip(1), result => Assert.False(result.IsAllowed));
+        Assert.Contains("passive data", snapshot.Detail);
+    }
+
+    [Fact]
+    public void Evaluate_FtpControlAndPassivePortsAllowed_ReportsGreen()
+    {
+        var targets = FirewallProbeFactory.Create(ProtocolKind.Ftp, "0.0.0.0", 21)
+            .Select(probe => new FirewallProbeTarget(probe, false, FirewallProfile.Private))
+            .ToArray();
+        var policy = Policy([Profile(FirewallProfile.Private)],
+            rules: AllowRule(profiles: (int)FirewallProfile.Private, protocol: 6, localPorts: "21,50000-50100"));
+
+        var snapshot = FirewallPolicyEvaluator.Evaluate(ExecutablePath, targets, policy);
+
+        Assert.Equal(FirewallStatusLevel.Green, snapshot.Level);
+        Assert.All(snapshot.Ports, result => Assert.True(result.IsAllowed));
+    }
 
     private static FirewallProfileState Profile(
         FirewallProfile profile,

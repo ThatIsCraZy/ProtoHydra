@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using DataService.Core.Authentication;
+using DataService.Core.Configuration;
 using DataService.Core.Events;
 using DataService.Infrastructure.Certificates;
 using DataService.Protocols.Abstractions;
@@ -86,6 +87,12 @@ public sealed class FtpFileServerAdapter : IProtocolAdapter
             return Task.FromResult(ProtocolValidationResult.Failure("Port is outside the valid TCP port range."));
         }
 
+        if (!FtpPassivePortRange.TryParse(configuration.FtpPassivePortRange, out _))
+        {
+            return Task.FromResult(ProtocolValidationResult.Failure(
+                "FTP passive port range must be min-max within 1024-65535."));
+        }
+
         try
         {
             using var listener = new TcpListener(address, configuration.Port);
@@ -121,6 +128,7 @@ public sealed class FtpFileServerAdapter : IProtocolAdapter
         try
         {
             var rootPath = Path.GetFullPath(configuration.RootPath);
+            FtpPassivePortRange.TryParse(configuration.FtpPassivePortRange, out var passivePorts);
             var certificate = _useTls
                 ? await GetCertificateAsync(cancellationToken)
                 : null;
@@ -140,6 +148,11 @@ public sealed class FtpFileServerAdapter : IProtocolAdapter
                     {
                         options.ServerAddress = configuration.BindAddress;
                         options.Port = configuration.Port;
+                    });
+                    services.Configure<SimplePasvOptions>(options =>
+                    {
+                        options.PasvMinPort = passivePorts.MinPort;
+                        options.PasvMaxPort = passivePorts.MaxPort;
                     });
                     services.Configure<DotNetFileSystemOptions>(options =>
                     {
