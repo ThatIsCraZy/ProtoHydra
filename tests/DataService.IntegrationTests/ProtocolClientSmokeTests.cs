@@ -1086,7 +1086,7 @@ public sealed class ProtocolClientSmokeTests
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
         while (directory is not null)
         {
-            if (File.Exists(Path.Combine(directory.FullName, "AGENTS.md")))
+            if (File.Exists(Path.Combine(directory.FullName, "ProtoHydra.slnx")))
             {
                 return directory.FullName;
             }
@@ -1094,6 +1094,6 @@ public sealed class ProtocolClientSmokeTests
             directory = directory.Parent;
         }
 
-        throw new DirectoryNotFoundException("Could not find workspace root containing AGENTS.md.");
+        throw new DirectoryNotFoundException("Could not find workspace root containing ProtoHydra.slnx.");
     }
 }
