@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Globalization;
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Sockets;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -296,13 +297,13 @@ public sealed class HttpFileServerAdapter : IProtocolAdapter
 
             if (Directory.Exists(resolved.FullPath))
             {
-                var html = BuildDirectoryListing(resolved, path);
+                var html = BuildDirectoryListing(resolved);
                 context.Response.ContentType = "text/html; charset=utf-8";
                 byteCount = Encoding.UTF8.GetByteCount(html);
                 if (method == WHttpMethod.HEAD)
                 {
-                    context.Response.Headers.Add("Content-Length", byteCount.ToString(CultureInfo.InvariantCulture));
-                    await context.Response.Send(0, context.Token);
+                    await context.Response.Send(byteCount, context.Token);
+                    byteCount = 0;
                     return;
                 }
 
@@ -319,6 +320,11 @@ public sealed class HttpFileServerAdapter : IProtocolAdapter
             }
 
             byteCount = await SendFileAsync(context, resolved.FullPath, method, context.Token);
+            if (context.Response.StatusCode == 416)
+            {
+                result = TransferResult.Rejected;
+                failureMessage = "Requested byte range is not satisfiable.";
+            }
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
@@ -338,11 +344,13 @@ public sealed class HttpFileServerAdapter : IProtocolAdapter
         }
         finally
         {
-            var eventKind = method == WHttpMethod.HEAD
-                ? TransferEventKind.CommandReceived
-                : ioError is not null
-                    ? TransferEventKind.DownloadFailed
-                    : TransferEventKind.DownloadCompleted;
+            var eventKind = result switch
+            {
+                TransferResult.Rejected => TransferEventKind.RequestRejected,
+                TransferResult.Failed => TransferEventKind.DownloadFailed,
+                _ when method == WHttpMethod.HEAD => TransferEventKind.CommandReceived,
+                _ => TransferEventKind.DownloadCompleted
+            };
             var statusCode = context.Response.StatusCode.ToString(CultureInfo.InvariantCulture);
             _eventBus.TryPublish(new TransferEvent(
                 DateTimeOffset.UtcNow,
@@ -371,43 +379,34 @@ public sealed class HttpFileServerAdapter : IProtocolAdapter
         // Open before sending any headers so permission/stub/device failures can
         // still be answered with a clean HTTP error status.
         var file = new FileInfo(fullPath);
-        FileStream? stream = null;
-        long fileLength;
-        try
-        {
-            if (method != WHttpMethod.HEAD)
-            {
-                stream = new FileStream(
-                    fullPath,
-                    FileMode.Open,
-                    FileAccess.Read,
-                    FileShare.Read,
-                    bufferSize: 128 * 1024,
-                    FileOptions.Asynchronous | FileOptions.SequentialScan);
-                fileLength = stream.Length;
-            }
-            else
-            {
-                fileLength = file.Length;
-            }
-        }
-        catch (Exception)
-        {
-            if (stream is not null)
-            {
-                await stream.DisposeAsync();
-            }
+        await using var stream = method == WHttpMethod.HEAD ? null : new FileStream(
+            fullPath,
+            FileMode.Open,
+            FileAccess.Read,
+            FileShare.Read,
+            bufferSize: 128 * 1024,
+            FileOptions.Asynchronous | FileOptions.SequentialScan);
+        var fileLength = stream?.Length ?? file.Length;
 
-            throw;
-        }
-
-        var range = ParseRange(context.Request.Headers["Range"], fileLength);
-        var contentLength = range.Length;
+        // Range only applies to GET. Without validator support, conservatively
+        // send the full representation for If-Range instead of mixing versions.
+        var rangeHeader = method == WHttpMethod.GET && context.Request.Headers["If-Range"] is null
+            ? context.Request.Headers["Range"]
+            : null;
+        var range = ResolveRange(rangeHeader, fileLength);
 
         context.Response.ContentType = ResolveMimeType(file.Extension);
         context.Response.Headers.Add("Accept-Ranges", "bytes");
         context.Response.Headers.Add("Last-Modified", file.LastWriteTimeUtc.ToString("R", CultureInfo.InvariantCulture));
-        context.Response.Headers.Add("Content-Length", contentLength.ToString(CultureInfo.InvariantCulture));
+        if (range is null)
+        {
+            context.Response.StatusCode = 416;
+            context.Response.Headers.Add("Content-Range", $"bytes */{fileLength}");
+            await context.Response.Send(0, cancellationToken);
+            return 0;
+        }
+
+        var contentLength = range.Length;
 
         if (range.IsPartial)
         {
@@ -419,28 +418,30 @@ public sealed class HttpFileServerAdapter : IProtocolAdapter
 
         if (method == WHttpMethod.HEAD)
         {
-            await context.Response.Send(0, cancellationToken);
-            return contentLength;
+            await context.Response.Send(contentLength, cancellationToken);
+            return 0;
         }
 
         stream!.Position = range.Start;
-        await using (stream)
-        {
-            await context.Response.Send(contentLength, stream, cancellationToken);
-        }
+        await context.Response.Send(contentLength, stream, cancellationToken);
 
         return contentLength;
     }
 
-    private static string BuildDirectoryListing(ResolvedPath resolved, string requestPath)
+    private static string BuildDirectoryListing(ResolvedPath resolved)
     {
         var builder = new StringBuilder();
+        // Root-relative links also work when the request URL has no trailing '/'.
+        var directoryUrl = DirectoryUrl(resolved.RelativePath);
         builder.AppendLine("<!doctype html><html><head><meta charset=\"utf-8\"><title>Index</title></head><body>");
         builder.AppendLine("<h1>Index</h1><table><tr><th>Name</th><th>Size</th><th>Modified</th></tr>");
 
         if (!string.IsNullOrEmpty(resolved.RelativePath))
         {
-            builder.AppendLine("<tr><td><a href=\"../\">..</a></td><td></td><td></td></tr>");
+            var separator = resolved.RelativePath.LastIndexOf('/');
+            var parent = separator < 0 ? string.Empty : resolved.RelativePath[..separator];
+            builder.Append("<tr><td><a href=\"").Append(DirectoryUrl(parent))
+                .AppendLine("\">..</a></td><td></td><td></td></tr>");
         }
 
         foreach (var directory in Directory.EnumerateDirectories(resolved.FullPath).Order(StringComparer.OrdinalIgnoreCase))
@@ -449,7 +450,7 @@ public sealed class HttpFileServerAdapter : IProtocolAdapter
             try
             {
                 var info = new DirectoryInfo(directory);
-                var href = Uri.EscapeDataString(info.Name) + "/";
+                var href = directoryUrl + Uri.EscapeDataString(info.Name) + "/";
                 builder.Append("<tr><td><a href=\"").Append(href).Append("\">")
                     .Append(WebUtility.HtmlEncode(info.Name)).Append("/</a></td><td></td><td>")
                     .Append(info.LastWriteTimeUtc.ToString("u", CultureInfo.InvariantCulture))
@@ -465,7 +466,7 @@ public sealed class HttpFileServerAdapter : IProtocolAdapter
             try
             {
                 var info = new FileInfo(file);
-                var href = Uri.EscapeDataString(info.Name);
+                var href = directoryUrl + Uri.EscapeDataString(info.Name);
                 builder.Append("<tr><td><a href=\"").Append(href).Append("\">")
                     .Append(WebUtility.HtmlEncode(info.Name)).Append("</a></td><td>")
                     .Append(info.Length.ToString(CultureInfo.InvariantCulture)).Append("</td><td>")
@@ -478,9 +479,13 @@ public sealed class HttpFileServerAdapter : IProtocolAdapter
         }
 
         builder.AppendLine("</table></body></html>");
-        _ = requestPath;
         return builder.ToString();
     }
+
+    private static string DirectoryUrl(string relativePath)
+        => relativePath.Length == 0
+            ? "/"
+            : "/" + string.Join('/', relativePath.Split('/').Select(Uri.EscapeDataString)) + "/";
 
     private static string ResolveMimeType(string extension)
         => extension.ToLowerInvariant() switch
@@ -498,24 +503,26 @@ public sealed class HttpFileServerAdapter : IProtocolAdapter
             _ => "application/octet-stream"
         };
 
-    private static ByteRange ParseRange(string? rangeHeader, long fileLength)
+    private static ByteRange? ResolveRange(string? rangeHeader, long fileLength)
     {
-        if (string.IsNullOrWhiteSpace(rangeHeader) || !rangeHeader.StartsWith("bytes=", StringComparison.OrdinalIgnoreCase))
+        // Use the framework's HTTP header parser. Multipart ranges are optional;
+        // ignore them (and malformed headers) and serve the full file.
+        if (!RangeHeaderValue.TryParse(rangeHeader, out var header)
+            || !string.Equals(header.Unit, "bytes", StringComparison.OrdinalIgnoreCase)
+            || header.Ranges.Count != 1)
         {
             return new ByteRange(0, Math.Max(0, fileLength - 1), fileLength, IsPartial: false);
         }
 
-        var parts = rangeHeader["bytes=".Length..].Split('-', 2);
-        if (parts.Length != 2
-            || !long.TryParse(parts[0], CultureInfo.InvariantCulture, out var start)
-            || !long.TryParse(parts[1], CultureInfo.InvariantCulture, out var end)
-            || start < 0
-            || end < start
-            || end >= fileLength)
+        var requested = header.Ranges.Single();
+        if (fileLength == 0 || requested.From >= fileLength
+            || (requested.From is null && requested.To == 0))
         {
-            return new ByteRange(0, Math.Max(0, fileLength - 1), fileLength, IsPartial: false);
+            return null;
         }
 
+        var start = requested.From ?? Math.Max(0, fileLength - requested.To!.Value);
+        var end = requested.From is null ? fileLength - 1 : Math.Min(requested.To ?? fileLength - 1, fileLength - 1);
         return new ByteRange(start, end, end - start + 1, IsPartial: true);
     }
 

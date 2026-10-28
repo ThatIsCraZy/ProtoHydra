@@ -187,7 +187,7 @@ Einstellungen liegen als JSON im Benutzerprofil. Laufzeitdaten (Zertifikate, SSH
 
 ### Bauen aus dem Quellcode
 
-Voraussetzung: [.NET 10.0 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) oder höher.
+Voraussetzung: [.NET SDK 10.0.303](https://dotnet.microsoft.com/download/dotnet/10.0), wie in `global.json` fixiert. Lokale Builds und CI verwenden damit denselben SDK-Stand passend zu den eingecheckten Paketsperrdateien.
 
 ```bash
 dotnet build src\DataService.App\DataService.App.csproj -c Release     # Release-Build
@@ -430,7 +430,7 @@ Settings are stored as JSON in the user profile. Runtime data (certificates, SSH
 
 ### Building from source
 
-Requirement: [.NET 10.0 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) or later.
+Requirement: [.NET SDK 10.0.303](https://dotnet.microsoft.com/download/dotnet/10.0), pinned in `global.json`. Local builds and CI use the same SDK version to match the checked-in package lock files.
 
 ```bash
 dotnet build src\DataService.App\DataService.App.csproj -c Release     # release build

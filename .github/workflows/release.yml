@@ -35,16 +35,24 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '10.0.x'
+          global-json-file: global.json
+
+      - name: Restore locked dependencies
+        run: dotnet restore ProtoHydra.slnx --locked-mode
+
+      - name: Run tests
+        run: dotnet test ProtoHydra.slnx -c Release --no-restore
 
       - name: Publish (self-contained, win-x64, single file)
         shell: pwsh
         run: |
-          dotnet publish src/DataService.App/DataService.App.csproj -c Release
+          dotnet publish src/DataService.App/DataService.App.csproj -c Release --no-restore
           New-Item -ItemType Directory -Force staging | Out-Null
           Copy-Item src/DataService.App/bin/Release/net10.0/win-x64/publish/ProtoHydra.exe staging/ProtoHydra.exe
 

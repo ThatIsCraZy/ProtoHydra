@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Globalization;
 using DataService.Core.Events;
+using DataService.Core.FileSystem;
 using FubarDev.FtpServer;
 using FubarDev.FtpServer.BackgroundTransfer;
 using FubarDev.FtpServer.FileSystem;
@@ -27,6 +28,7 @@ internal sealed class InstrumentedFtpFileSystemFactory : IFileSystemClassFactory
         var rootPath = string.IsNullOrWhiteSpace(_options.RootPath)
             ? _instrumentation.RootPath
             : Path.GetFullPath(_options.RootPath);
+        new RootPathResolver(rootPath).ResolveClientPath(string.Empty, percentDecode: false);
         IUnixFileSystem inner = new DotNetFileSystem(
             rootPath,
             _options.AllowNonEmptyDirectoryDelete,
@@ -45,6 +47,7 @@ internal sealed class InstrumentedFtpFileSystem : IUnixFileSystem
     private readonly IUnixFileSystem _inner;
     private readonly FtpInstrumentationContext _instrumentation;
     private readonly string? _username;
+    private readonly RootPathResolver _resolver;
 
     public InstrumentedFtpFileSystem(
         IUnixFileSystem inner,
@@ -54,6 +57,7 @@ internal sealed class InstrumentedFtpFileSystem : IUnixFileSystem
         _inner = inner;
         _instrumentation = instrumentation;
         _username = username;
+        _resolver = new RootPathResolver(instrumentation.RootPath);
     }
 
     public bool SupportsAppend => _inner.SupportsAppend;
@@ -62,7 +66,14 @@ internal sealed class InstrumentedFtpFileSystem : IUnixFileSystem
 
     public StringComparer FileSystemEntryComparer => _inner.FileSystemEntryComparer;
 
-    public IUnixDirectoryEntry Root => _inner.Root;
+    public IUnixDirectoryEntry Root
+    {
+        get
+        {
+            ValidatePath(GetRelativePath(_inner.Root), "ROOT");
+            return _inner.Root;
+        }
+    }
 
     public async Task<IReadOnlyList<IUnixFileSystemEntry>> GetEntriesAsync(
         IUnixDirectoryEntry directoryEntry,
@@ -72,7 +83,16 @@ internal sealed class InstrumentedFtpFileSystem : IUnixFileSystem
         var correlationId = Guid.NewGuid().ToString("N");
         try
         {
-            var entries = await _inner.GetEntriesAsync(directoryEntry, cancellationToken);
+            ValidatePath(GetRelativePath(directoryEntry), "LIST");
+            var candidates = await _inner.GetEntriesAsync(directoryEntry, cancellationToken);
+            var entries = new List<IUnixFileSystemEntry>(candidates.Count);
+            foreach (var entry in candidates)
+            {
+                if (IsAllowedPath(GetRelativePath(entry), "LIST"))
+                {
+                    entries.Add(entry);
+                }
+            }
             Publish(
                 TransferEventKind.DirectoryListed,
                 "LIST",
@@ -105,7 +125,10 @@ internal sealed class InstrumentedFtpFileSystem : IUnixFileSystem
         IUnixDirectoryEntry directoryEntry,
         string name,
         CancellationToken cancellationToken)
-        => _inner.GetEntryByNameAsync(directoryEntry, name, cancellationToken);
+    {
+        ValidatePath(GetChildPath(directoryEntry, name), "LOOKUP");
+        return _inner.GetEntryByNameAsync(directoryEntry, name, cancellationToken);
+    }
 
     public Task<IUnixFileSystemEntry> MoveAsync(
         IUnixDirectoryEntry parent,
@@ -113,16 +136,27 @@ internal sealed class InstrumentedFtpFileSystem : IUnixFileSystem
         IUnixDirectoryEntry target,
         string fileName,
         CancellationToken cancellationToken)
-        => _inner.MoveAsync(parent, source, target, fileName, cancellationToken);
+    {
+        ValidatePath(GetRelativePath(parent), "RENAME");
+        ValidatePath(GetRelativePath(source), "RENAME");
+        ValidatePath(GetChildPath(target, fileName), "RENAME");
+        return _inner.MoveAsync(parent, source, target, fileName, cancellationToken);
+    }
 
     public Task UnlinkAsync(IUnixFileSystemEntry entry, CancellationToken cancellationToken)
-        => _inner.UnlinkAsync(entry, cancellationToken);
+    {
+        ValidatePath(GetRelativePath(entry), "DELETE");
+        return _inner.UnlinkAsync(entry, cancellationToken);
+    }
 
     public Task<IUnixDirectoryEntry> CreateDirectoryAsync(
         IUnixDirectoryEntry targetDirectory,
         string directoryName,
         CancellationToken cancellationToken)
-        => _inner.CreateDirectoryAsync(targetDirectory, directoryName, cancellationToken);
+    {
+        ValidatePath(GetChildPath(targetDirectory, directoryName), "MKDIR");
+        return _inner.CreateDirectoryAsync(targetDirectory, directoryName, cancellationToken);
+    }
 
     public async Task<Stream> OpenReadAsync(
         IUnixFileEntry fileEntry,
@@ -145,6 +179,7 @@ internal sealed class InstrumentedFtpFileSystem : IUnixFileSystem
 
         try
         {
+            ValidatePath(relativePath, "RETR");
             var innerStream = await _inner.OpenReadAsync(fileEntry, startPosition, cancellationToken);
             return new CountingReadStream(
                 innerStream,
@@ -197,6 +232,7 @@ internal sealed class InstrumentedFtpFileSystem : IUnixFileSystem
 
         try
         {
+            ValidatePath(relativePath, "APPE");
             var transfer = await _inner.AppendAsync(fileEntry, startPosition, data, cancellationToken);
             if (transfer is null)
             {
@@ -233,6 +269,7 @@ internal sealed class InstrumentedFtpFileSystem : IUnixFileSystem
 
         try
         {
+            ValidatePath(GetChildPath(targetDirectory, fileName), "STOR");
             var transfer = await _inner.CreateAsync(targetDirectory, fileName, data, cancellationToken);
             if (transfer is null)
             {
@@ -269,6 +306,7 @@ internal sealed class InstrumentedFtpFileSystem : IUnixFileSystem
 
         try
         {
+            ValidatePath(relativePath, "STOR");
             var transfer = await _inner.ReplaceAsync(fileEntry, data, cancellationToken);
             if (transfer is null)
             {
@@ -299,7 +337,49 @@ internal sealed class InstrumentedFtpFileSystem : IUnixFileSystem
         DateTimeOffset? access,
         DateTimeOffset? create,
         CancellationToken cancellationToken)
-        => _inner.SetMacTimeAsync(entry, modify, access, create, cancellationToken);
+    {
+        ValidatePath(GetRelativePath(entry), "MFMT");
+        return _inner.SetMacTimeAsync(entry, modify, access, create, cancellationToken);
+    }
+
+    private string GetChildPath(IUnixDirectoryEntry directory, string name)
+    {
+        // Validate the client-supplied name before Path.Combine can discard the
+        // parent or normalize traversal. FTP names are literal, not URL encoded.
+        if (Path.IsPathRooted(name) || name.Contains('/') || name.Contains('\\'))
+        {
+            const string message = "An FTP entry name must be a single relative path segment.";
+            Publish(TransferEventKind.RequestRejected, "LOOKUP", name, null, null,
+                TimeSpan.Zero, TransferResult.Rejected, message, Guid.NewGuid().ToString("N"));
+            throw new UnauthorizedAccessException(message);
+        }
+        return GetRelativePath(directory) is { Length: > 0 } parent
+            ? parent + "/" + name
+            : name;
+    }
+
+    private void ValidatePath(string? relativePath, string command)
+    {
+        if (!IsAllowedPath(relativePath, command))
+        {
+            throw new UnauthorizedAccessException("Path is not accessible within the configured root folder.");
+        }
+    }
+
+    private bool IsAllowedPath(string? relativePath, string command)
+    {
+        try
+        {
+            _resolver.ResolveClientPath(relativePath ?? string.Empty, percentDecode: false);
+            return true;
+        }
+        catch (PathResolutionException ex)
+        {
+            Publish(TransferEventKind.RequestRejected, command, relativePath, null, null,
+                TimeSpan.Zero, TransferResult.Rejected, ex.Message, Guid.NewGuid().ToString("N"));
+            return false;
+        }
+    }
 
     private string PublishUploadStarted(string command, string? relativePath)
     {

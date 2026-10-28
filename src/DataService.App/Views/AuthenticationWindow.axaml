@@ -51,15 +51,15 @@
         <Grid Grid.Row="2" ColumnDefinitions="*,*,*,Auto" ColumnSpacing="8">
           <StackPanel Spacing="2">
             <TextBlock Text="Username" Classes="caption" />
-            <TextBox Text="{Binding NewUsername}" Watermark="user" />
+            <TextBox Text="{Binding NewUsername}" PlaceholderText="user" />
           </StackPanel>
           <StackPanel Grid.Column="1" Spacing="2">
             <TextBlock Text="Password" Classes="caption" />
-            <TextBox Text="{Binding NewPassword}" PasswordChar="●" Watermark="password" />
+            <TextBox Text="{Binding NewPassword}" PasswordChar="●" PlaceholderText="password" />
           </StackPanel>
           <StackPanel Grid.Column="2" Spacing="2">
             <TextBlock Text="Confirm" Classes="caption" />
-            <TextBox Text="{Binding NewPasswordConfirm}" PasswordChar="●" Watermark="repeat" />
+            <TextBox Text="{Binding NewPasswordConfirm}" PasswordChar="●" PlaceholderText="repeat" />
           </StackPanel>
           <Button Grid.Column="3"
                   VerticalAlignment="Bottom"
